@@ -1,0 +1,516 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🎙️ ElevenLabs Voice Test - Live</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        
+        .container {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            max-width: 800px;
+            width: 100%;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        
+        h1 {
+            color: #667eea;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .status-box {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            border-left: 4px solid #667eea;
+        }
+        
+        .status-box.error {
+            border-left-color: #ef4444;
+            background: #fee;
+        }
+        
+        .status-box.success {
+            border-left-color: #10b981;
+            background: #d1fae5;
+        }
+        
+        .status-box h3 {
+            margin-bottom: 10px;
+            color: #333;
+        }
+        
+        .controls {
+            text-align: center;
+            margin: 30px 0;
+        }
+        
+        .voice-btn {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            border: none;
+            font-size: 3em;
+            cursor: pointer;
+            transition: all 0.3s;
+            background: #667eea;
+            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.4);
+        }
+        
+        .voice-btn:hover {
+            transform: scale(1.1);
+        }
+        
+        .voice-btn.recording {
+            background: #ef4444;
+            animation: pulse 1.5s infinite;
+        }
+        
+        .voice-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.15); }
+        }
+        
+        .transcript {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+            min-height: 300px;
+            max-height: 400px;
+            overflow-y: auto;
+            margin-top: 30px;
+        }
+        
+        .message {
+            margin: 15px 0;
+            padding: 15px;
+            border-radius: 10px;
+        }
+        
+        .message.user {
+            background: #667eea;
+            color: white;
+            margin-left: 50px;
+        }
+        
+        .message.assistant {
+            background: white;
+            border: 2px solid #e0e0e0;
+            margin-right: 50px;
+        }
+        
+        .message strong {
+            display: block;
+            margin-bottom: 5px;
+        }
+        
+        .debug {
+            margin-top: 20px;
+            padding: 15px;
+            background: #1e1e1e;
+            color: #10b981;
+            border-radius: 10px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.85em;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        
+        .debug-line {
+            margin: 5px 0;
+            opacity: 0.8;
+        }
+        
+        .instructions {
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .instructions h3 {
+            color: #667eea;
+            margin-bottom: 10px;
+        }
+        
+        .instructions ul {
+            margin-left: 20px;
+        }
+        
+        .instructions li {
+            margin: 8px 0;
+            color: #333;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎙️ ElevenLabs Voice - Live Test</h1>
+        
+        <div class="instructions">
+                        <h3>How to Test:</h3>
+            <ul>
+                <li>Click the microphone and allow access</li>
+                <li>Talk normally. Audio is streaming, so do not wait for a beep</li>
+                <li>You can talk over her. She should stop and listen</li>
+                <li>Click the button again to hang up</li>
+            </ul>
+        </div>
+        
+        <div id="status" class="status-box">
+            <h3>Status: Ready</h3>
+            <p id="status-text">Click the microphone to start your conversation</p>
+        </div>
+        
+        <div class="controls">
+            <button id="voiceBtn" class="voice-btn" onclick="toggleVoice()">
+                🎙️
+            </button>
+            <p id="instruction" style="margin-top: 20px; color: #666; font-weight: 600;">
+                Click to Start
+            </p>
+        </div>
+        
+        <div class="transcript" id="transcript">
+            <p style="color: #999; text-align: center;">Your conversation will appear here...</p>
+        </div>
+        
+        <div class="debug" id="debug">
+            <div class="debug-line">🔧 Debug Console</div>
+        </div>
+    </div>
+    
+    <script>
+        let ws = null;
+        let isRecording = false;
+        let audioContext = null;
+        let playContext = null;
+        let mediaStream = null;
+        let processor = null;
+        let playSources = [];
+        let nextPlayAt = 0;
+        let speechChunks = [];
+        let heardSpeech = false;
+        let silenceMs = 0;
+        let bargeMs = 0;
+        const TARGET_RATE = 16000;
+        
+        function log(message, type = 'info') {
+            const debug = document.getElementById('debug');
+            const line = document.createElement('div');
+            line.className = 'debug-line';
+            line.style.color = type === 'error' ? '#ef4444' : type === 'success' ? '#10b981' : '#60a5fa';
+            line.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
+            debug.appendChild(line);
+            debug.scrollTop = debug.scrollHeight;
+            console.log(message);
+        }
+        
+        function updateStatus(title, text, type = 'normal') {
+            const statusBox = document.getElementById('status');
+            statusBox.className = 'status-box';
+            if (type === 'error') statusBox.classList.add('error');
+            if (type === 'success') statusBox.classList.add('success');
+            
+            statusBox.innerHTML = `<h3>${title}</h3><p>${text}</p>`;
+        }
+        
+        function addMessage(role, text) {
+            const transcript = document.getElementById('transcript');
+            if (transcript.querySelector('p[style*="color: #999"]')) {
+                transcript.innerHTML = '';
+            }
+            
+            const msg = document.createElement('div');
+            msg.className = `message ${role}`;
+            msg.innerHTML = `<strong>${role === 'user' ? '👤 You' : '🤖 ElevenLabs AI'}</strong>${text}`;
+            transcript.appendChild(msg);
+            transcript.scrollTop = transcript.scrollHeight;
+        }
+        
+        async function toggleVoice() {
+            if (isRecording) {
+                stopRecording();
+            } else {
+                await startRecording();
+            }
+        }
+        
+        async function startRecording() {
+            const btn = document.getElementById('voiceBtn');
+            const instruction = document.getElementById('instruction');
+            
+            try {
+                log('🔌 Connecting to ElevenLabs...', 'info');
+                updateStatus('Connecting...', 'Establishing connection to ElevenLabs AI');
+                
+                // Connect WebSocket
+                const wsUrl = `ws://${location.host}/voice/elevenlabs/live`;
+                log(`📡 WebSocket URL: ${wsUrl}`, 'info');
+                
+                ws = new WebSocket(wsUrl);
+                
+                ws.onopen = async () => {
+                    log('✅ WebSocket connected!', 'success');
+                    updateStatus('Connected', 'WebSocket connection established', 'success');
+                    
+                    // Get microphone access
+                    try {
+                        log('🎤 Requesting microphone access...', 'info');
+                        mediaStream = await navigator.mediaDevices.getUserMedia({ 
+                            audio: {
+                                echoCancellation: true,
+                                noiseSuppression: true,
+                                autoGainControl: true
+                            } 
+                        });
+                        
+                        log('✅ Microphone access granted', 'success');
+                        
+                        audioContext = new AudioContext();
+                        playContext = audioContext;
+                        const source = audioContext.createMediaStreamSource(mediaStream);
+                        processor = audioContext.createScriptProcessor(2048, 1, 1);
+                        
+                        processor.onaudioprocess = (e) => {
+                            if (!ws || ws.readyState !== WebSocket.OPEN) return;
+                            const audioData = e.inputBuffer.getChannelData(0);
+                            let energy = 0;
+                            for (let i = 0; i < audioData.length; i++) energy += audioData[i] * audioData[i];
+                            energy = Math.sqrt(energy / audioData.length);
+                            const chunkMs = (audioData.length / audioContext.sampleRate) * 1000;
+                            const talking = energy > (playSources.length ? 0.09 : 0.03);
+                            if (talking && playSources.length) {
+                                bargeMs += chunkMs;
+                                if (bargeMs > 220) {
+                                    bargeMs = 0;
+                                    stopPlayback();
+                                    ws.send(JSON.stringify({type: 'cancel'}));
+                                }
+                            } else {
+                                bargeMs = 0;
+                            }
+                            if (talking) {
+                                heardSpeech = true;
+                                silenceMs = 0;
+                                speechChunks.push(new Float32Array(audioData));
+                            } else if (heardSpeech) {
+                                speechChunks.push(new Float32Array(audioData));
+                                silenceMs += chunkMs;
+                                if (silenceMs > 320) sendUtterance();
+                            }
+                        };
+                        
+                        source.connect(processor);
+                        processor.connect(audioContext.destination);
+                        
+                        isRecording = true;
+                        btn.classList.add('recording');
+                        btn.textContent = '⏹️';
+                        instruction.textContent = 'Recording... Speak now!';
+                        updateStatus('🎙️ Listening', 'Speak naturally. I\'m listening...', 'success');
+                        log('🎙️ Recording started', 'success');
+                        
+                    } catch (micError) {
+                        log(`❌ Microphone error: ${micError.message}`, 'error');
+                        updateStatus('Microphone Error', 'Please allow microphone access and try again', 'error');
+                        ws.close();
+                    }
+                };
+                
+                ws.onmessage = async (event) => {
+                    if (event.data instanceof Blob) {
+                        const arrayBuffer = await event.data.arrayBuffer();
+                        playPcm16(arrayBuffer);
+                    } else {
+                        // JSON message
+                        try {
+                            const data = JSON.parse(event.data);
+                            log(`📨 Received: ${data.type}`, 'info');
+                            
+                            if (data.type === 'transcript') {
+                                if (data.role === 'user') {
+                                    addMessage('user', data.text);
+                                    log(`👤 User said: ${data.text}`, 'info');
+                                } else {
+                                    addMessage('assistant', data.text);
+                                    log(`🤖 Assistant: ${data.text}`, 'info');
+                                }
+                            } else if (data.type === 'interrupt') {
+                                stopPlayback();
+                                log('Interrupted. Listening again.', 'info');
+                            } else if (data.type === 'status') {
+                                const labels = {
+                                    ready: 'Live. Start talking. You can interrupt her.',
+                                };
+                                updateStatus(data.status, labels[data.status] || data.status, 'success');
+                            } else if (data.type === 'error') {
+                                log(`❌ Error: ${data.message}`, 'error');
+                                updateStatus('Error', data.message, 'error');
+                            }
+                        } catch (e) {
+                            log(`⚠️ Parse error: ${e.message}`, 'error');
+                        }
+                    }
+                };
+                
+                ws.onerror = (error) => {
+                    log(`❌ WebSocket error: ${error}`, 'error');
+                    updateStatus('Connection Error', 'Failed to connect to server', 'error');
+                };
+                
+                ws.onclose = () => {
+                    log('🔌 WebSocket closed', 'info');
+                    stopRecording();
+                };
+                
+            } catch (error) {
+                log(`❌ Error: ${error.message}`, 'error');
+                updateStatus('Error', error.message, 'error');
+                btn.disabled = false;
+            }
+        }
+        
+        function stopRecording() {
+            const btn = document.getElementById('voiceBtn');
+            const instruction = document.getElementById('instruction');
+            
+            log('⏹️ Stopping recording...', 'info');
+            stopPlayback();
+            
+            isRecording = false;
+            btn.classList.remove('recording');
+            btn.textContent = '🎙️';
+            instruction.textContent = 'Click to Start Again';
+            updateStatus('Stopped', 'Click microphone to start a new conversation');
+            
+            if (processor) {
+                processor.disconnect();
+                processor = null;
+            }
+            
+            if (audioContext) {
+                audioContext.close();
+                audioContext = null;
+            }
+            
+            if (mediaStream) {
+                mediaStream.getTracks().forEach(track => track.stop());
+                mediaStream = null;
+            }
+            
+            if (ws) {
+                ws.close();
+                ws = null;
+            }
+            
+            log('✅ Stopped', 'success');
+        }
+        
+        function sendUtterance() {
+            if (!speechChunks.length || !ws || ws.readyState !== WebSocket.OPEN) return;
+            const total = speechChunks.reduce((n, chunk) => n + chunk.length, 0);
+            const merged = new Float32Array(total);
+            let offset = 0;
+            speechChunks.forEach((chunk) => {
+                merged.set(chunk, offset);
+                offset += chunk.length;
+            });
+            speechChunks = [];
+            heardSpeech = false;
+            silenceMs = 0;
+            if (total < audioContext.sampleRate * 0.35) return;
+            const audio = resample(merged, audioContext.sampleRate, TARGET_RATE);
+            ws.send(floatToPcm16(audio));
+        }
+
+        function resample(input, inRate, outRate) {
+            if (inRate === outRate) return input;
+            const ratio = inRate / outRate;
+            const length = Math.floor(input.length / ratio);
+            const output = new Float32Array(length);
+            for (let i = 0; i < length; i++) {
+                const position = i * ratio;
+                const left = Math.floor(position);
+                const right = Math.min(left + 1, input.length - 1);
+                const mix = position - left;
+                output[i] = input[left] * (1 - mix) + input[right] * mix;
+            }
+            return output;
+        }
+
+        function floatToPcm16(float32Array) {
+            const buffer = new ArrayBuffer(float32Array.length * 2);
+            const view = new DataView(buffer);
+            for (let i = 0; i < float32Array.length; i++) {
+                const s = Math.max(-1, Math.min(1, float32Array[i]));
+                view.setInt16(i * 2, s < 0 ? s * 0x8000 : s * 0x7FFF, true);
+            }
+            return buffer;
+        }
+
+        function stopPlayback() {
+            playSources.forEach((source) => { try { source.stop(); } catch (e) {} });
+            playSources = [];
+            nextPlayAt = 0;
+        }
+
+        function playPcm16(arrayBuffer) {
+            if (!playContext) return;
+            if (playContext.state === 'suspended') playContext.resume();
+            const view = new DataView(arrayBuffer);
+            const input = new Float32Array(arrayBuffer.byteLength / 2);
+            for (let i = 0; i < input.length; i++) {
+                input[i] = view.getInt16(i * 2, true) / 32768;
+            }
+            const samples = resample(input, TARGET_RATE, playContext.sampleRate);
+            let buffer;
+            try {
+                buffer = playContext.createBuffer(1, samples.length, playContext.sampleRate);
+            } catch (error) {
+                log('Playback error: ' + error.message, 'error');
+                return;
+            }
+            buffer.copyToChannel(samples, 0);
+            const source = playContext.createBufferSource();
+            source.buffer = buffer;
+            source.connect(playContext.destination);
+            const now = playContext.currentTime;
+            if (nextPlayAt < now + 0.02) nextPlayAt = now + 0.02;
+            source.start(nextPlayAt);
+            nextPlayAt += buffer.duration;
+            playSources.push(source);
+            source.onended = () => {
+                playSources = playSources.filter((item) => item !== source);
+            };
+        }
+        
+        log('✅ Page loaded. This call uses your ElevenLabs voice.', 'success');
+        log('📍 Endpoint: /voice/elevenlabs/live', 'info');
+    </script>
+</body>
+</html>

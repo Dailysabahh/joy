@@ -1,0 +1,22 @@
+{% extends "app/base.html" %}
+{% block title %}Account{% endblock %}
+{% block content %}
+  <h1>Account</h1>
+  <p class="lead">The email is where verification will be sent. Add the code here when you have it.</p>
+  {% if saved %}<div class="banner">Saved.</div>{% endif %}
+  <form class="card" method="post" action="/app/profile">
+    <h2>Profile</h2>
+    <label>Username</label>
+    <input value="{{ account.username }}" disabled />
+    <label>Email</label>
+    <input value="{{ account.email or 'No email yet' }}" disabled />
+    <p class="hint" style="margin-top:10px">{{ 'Verified' if account.email_verified else 'Waiting for verification' }}</p>
+    <label>Verification code</label>
+    <input name="verification_code" value="{{ account.verification_code or '' }}" placeholder="Add the code when it arrives" autocomplete="one-time-code" />
+    <div class="actions"><button class="primary" type="submit">Save code</button></div>
+  </form>
+  <section class="card">
+    <h2>Plan</h2>
+    <p class="hint">{{ account.plan }} · {{ account.access or 'paid' }}</p>
+  </section>
+{% endblock %}

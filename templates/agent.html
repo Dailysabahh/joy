@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>{{ agent.name }} — {{ agent.business_name }}</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Plus+Jakarta+Sans:wght@500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #09090b; --card: #111115; --text: #fafafa; --muted: #a1a1aa;
+      --faint: #71717a; --line: #27272a; --blue: #3b82f6; --violet: #8b5cf6;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0; background: var(--bg); color: var(--text);
+      font-family: Inter, system-ui, sans-serif;
+    }
+    a { color: inherit; }
+    .wrap { max-width: 980px; margin: 0 auto; padding: 28px 20px 120px; }
+    .top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 28px; }
+    .brand { font-family: "Plus Jakarta Sans", sans-serif; font-weight: 700; text-decoration: none; }
+    .nav a { color: var(--muted); text-decoration: none; font-size: 14px; margin-left: 16px; }
+    h1 { font-family: "Plus Jakarta Sans", sans-serif; font-size: 36px; letter-spacing: -0.04em; margin: 0; }
+    .sub { color: var(--muted); margin: 6px 0 0; }
+    .layout { display: grid; grid-template-columns: 1.4fr 0.8fr; gap: 16px; margin-top: 24px; }
+    .panel { background: var(--card); border: 1px solid var(--line); border-radius: 18px; padding: 22px; margin-bottom: 16px; }
+    h2 { font-family: "Plus Jakarta Sans", sans-serif; font-size: 18px; margin: 0 0 6px; }
+    p.hint { color: var(--muted); font-size: 14px; line-height: 1.5; margin: 0 0 8px; }
+    label { display: block; font-size: 12px; color: var(--faint); margin: 14px 0 6px; }
+    input, textarea {
+      width: 100%; background: #0c0c0f; border: 1px solid var(--line); color: var(--text);
+      border-radius: 12px; padding: 12px 14px; font: inherit; font-size: 15px;
+    }
+    textarea { min-height: 140px; resize: vertical; }
+    button, .copy {
+      border: 0; border-radius: 999px; padding: 12px 18px; font: inherit; font-weight: 600; cursor: pointer;
+      background: linear-gradient(90deg, var(--blue), var(--violet)); color: white; margin-top: 16px;
+    }
+    .snippet {
+      width: 100%; min-height: 88px; margin-top: 10px; font-family: ui-monospace, monospace; font-size: 12px;
+    }
+    .saved { color: #86efac; font-size: 13px; margin-left: 10px; }
+    @media (max-width: 800px) { .layout { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="top">
+      <a class="brand" href="/">Closer Tech</a>
+      <div class="nav">
+        <a href="/studio">New assistant</a>
+        <a href="/">Site</a>
+      </div>
+    </div>
+    <h1>{{ agent.name }}</h1>
+    <p class="sub">{{ agent.role or "Assistant" }} for {{ agent.business_name }}{% if agent.industry %} · {{ agent.industry }}{% endif %}</p>
+
+    <div class="layout">
+      <section class="panel">
+        <h2>Dashboard</h2>
+        <p class="hint">The assistant is created. Add the rest of the business here whenever you want. The call button on this page uses what you save.</p>
+        <form method="post" action="/studio/{{ agent.token }}/details">
+          <label for="name">Assistant name</label>
+          <input id="name" name="name" value="{{ agent.name }}" required />
+          <label for="role">Job title</label>
+          <input id="role" name="role" value="{{ agent.role or '' }}" />
+          <label for="business_name">Business</label>
+          <input id="business_name" name="business_name" value="{{ agent.business_name }}" required />
+          <label for="industry">Industry</label>
+          <input id="industry" name="industry" value="{{ agent.industry or '' }}" />
+          <label for="website">Website</label>
+          <input id="website" name="website" value="{{ agent.website or '' }}" />
+          <label for="objective">What this assistant is for</label>
+          <input id="objective" name="objective" value="{{ agent.objective or '' }}" />
+          <label for="greeting">Opening line</label>
+          <input id="greeting" name="greeting" value="{{ agent.greeting }}" required />
+          <div id="voice-picker" data-voice="{{ agent.voice or 'Kore' }}" data-tone="{{ agent.tone or 'warm' }}" data-manner="{{ agent.manner or 'brief' }}"></div>
+          <label for="description">What it should know</label>
+          <textarea id="description" name="description" required>{{ agent.description }}</textarea>
+          <label for="phone_number">Phone number</label>
+          <input id="phone_number" name="phone_number" value="{{ agent.phone_number or '' }}" placeholder="+234..." />
+          <button type="submit">Save</button>
+          {% if saved %}<span class="saved">Saved</span>{% endif %}
+        </form>
+      </section>
+      <aside>
+        <section class="panel">
+          <h2>Website</h2>
+          <p class="hint">Paste this on the business website. A call button will move around the page and open {{ agent.name }}.</p>
+          <textarea class="snippet" id="embed" readonly>{{ embed }}</textarea>
+          <button class="copy" type="button" id="copy">Copy embed</button>
+        </section>
+        <section class="panel">
+          <h2>Try the call</h2>
+          <p class="hint">Use the call button on this page. It speaks as {{ agent.name }} from the details you saved.</p>
+        </section>
+      </aside>
+    </div>
+  </div>
+  <script>
+    document.getElementById("copy").addEventListener("click", async () => {
+      await navigator.clipboard.writeText(document.getElementById("embed").value);
+      document.getElementById("copy").textContent = "Copied";
+    });
+  </script>
+  <script src="/studio/voice-picker.js"></script>
+  <script src="/voice/widget.js?agent={{ agent.token }}" defer></script>
+</body>
+</html>

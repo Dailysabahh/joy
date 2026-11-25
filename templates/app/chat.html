@@ -1,0 +1,30 @@
+{% extends "app/base.html" %}
+{% block title %}Chat{% endblock %}
+{% block content %}
+  <h1>{{ contact.name if contact else 'Caller' }}</h1>
+  <p class="lead">{{ agent.name }} · {{ 'Chat' if chat.kind == 'chat' else 'Call' }} · {{ chat.started_at.strftime('%d %b %Y %H:%M') if chat.started_at else '' }}</p>
+  <div class="grid" style="align-items:start;">
+    <section class="card">
+      <h2>Conversation</h2>
+      {% for turn in chat.turns %}
+      <div class="turn">
+        <b>{{ 'Caller' if turn.role == 'caller' else agent.name }}</b>
+        {{ turn.text }}
+      </div>
+      {% else %}
+      <p class="hint">This call connected, and no words were captured.</p>
+      {% endfor %}
+    </section>
+    {% if contact %}
+    <form class="card" method="post" action="/app/chats/{{ chat.id }}/contact">
+      <h2>Contact</h2>
+      <p class="hint">Name the person and keep a number for later.</p>
+      <label>Name</label><input name="name" value="{{ contact.name }}" />
+      <label>Phone</label><input name="phone" value="{{ contact.phone or '' }}" />
+      <label>Email</label><input name="email" value="{{ contact.email or '' }}" />
+      <label>Note</label><textarea name="note">{{ contact.note or '' }}</textarea>
+      <div class="actions"><button class="primary" type="submit">Save contact</button></div>
+    </form>
+    {% endif %}
+  </div>
+{% endblock %}

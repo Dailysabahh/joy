@@ -1,0 +1,24 @@
+{% extends "app/base.html" %}
+{% block title %}Contacts{% endblock %}
+{% block content %}
+  <h1>Contacts</h1>
+  <p class="lead">People your bots have spoken with.</p>
+  <div class="card" style="padding:8px 12px;">
+    <table>
+      <thead><tr><th>Name</th><th>Phone</th><th>Email</th><th>Bot</th><th>Last active</th></tr></thead>
+      <tbody>
+        {% for contact in contacts %}
+        <tr>
+          <td>{{ contact.name }}</td>
+          <td class="muted">{{ contact.phone or '—' }}</td>
+          <td class="muted">{{ contact.email or '—' }}</td>
+          <td class="muted">{{ names.get(contact.agent_id, 'Bot') }}</td>
+          <td class="muted">{{ contact.last_active.strftime('%d %b %H:%M') if contact.last_active else '—' }}</td>
+        </tr>
+        {% else %}
+        <tr><td colspan="5" class="muted">No contacts yet.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+{% endblock %}

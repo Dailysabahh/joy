@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Create an assistant — Closer Tech</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Plus+Jakarta+Sans:wght@500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #09090b;
+      --card: #111115;
+      --card-2: #18181c;
+      --text: #fafafa;
+      --muted: #a1a1aa;
+      --faint: #71717a;
+      --line: #27272a;
+      --blue: #3b82f6;
+      --violet: #8b5cf6;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background:
+        radial-gradient(900px 420px at 80% -10%, rgba(139, 92, 246, 0.16), transparent 60%),
+        radial-gradient(700px 380px at 0% 0%, rgba(59, 130, 246, 0.14), transparent 55%),
+        var(--bg);
+      color: var(--text);
+      font-family: Inter, system-ui, sans-serif;
+    }
+    a { color: inherit; }
+    .wrap { max-width: 880px; margin: 0 auto; padding: 28px 20px 80px; }
+    .top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 36px; }
+    .brand { font-family: "Plus Jakarta Sans", sans-serif; font-weight: 700; letter-spacing: -0.03em; text-decoration: none; }
+    .back { color: var(--muted); text-decoration: none; font-size: 14px; }
+    h1 { font-family: "Plus Jakarta Sans", sans-serif; font-size: 40px; letter-spacing: -0.04em; margin: 0 0 8px; }
+    .lead { color: var(--muted); margin: 0 0 28px; line-height: 1.5; }
+    .choices { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+    .choice, .panel {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      padding: 22px;
+    }
+    .choice { text-align: left; color: inherit; cursor: pointer; font: inherit; }
+    .choice:hover, .panel:hover { border-color: #3f3f46; }
+    .choice h2, .panel h2 { font-family: "Plus Jakarta Sans", sans-serif; font-size: 20px; margin: 12px 0 6px; }
+    .choice p, .hint { color: var(--muted); font-size: 14px; line-height: 1.5; margin: 0; }
+    .mark {
+      width: 36px; height: 36px; border-radius: 10px;
+      display: grid; place-items: center;
+      background: linear-gradient(135deg, rgba(59,130,246,.2), rgba(139,92,246,.2));
+      color: #c4b5fd; font-size: 16px;
+    }
+    label { display: block; font-size: 12px; color: var(--faint); margin: 14px 0 6px; }
+    input, textarea {
+      width: 100%;
+      background: #0c0c0f;
+      border: 1px solid var(--line);
+      color: var(--text);
+      border-radius: 12px;
+      padding: 12px 14px;
+      font: inherit;
+      font-size: 15px;
+    }
+    textarea { min-height: 120px; resize: vertical; }
+    input:focus, textarea:focus { outline: 2px solid rgba(139, 92, 246, 0.45); border-color: transparent; }
+    .row { display: flex; gap: 10px; margin-top: 18px; flex-wrap: wrap; }
+    button.primary, button.ghost {
+      border: 0; border-radius: 999px; padding: 12px 18px; font: inherit; font-weight: 600; cursor: pointer;
+    }
+    button.primary { background: linear-gradient(90deg, var(--blue), var(--violet)); color: white; }
+    button.primary:disabled { opacity: 0.55; cursor: wait; }
+    button.ghost { background: transparent; color: var(--muted); border: 1px solid var(--line); }
+    .error { color: #fca5a5; font-size: 14px; margin-top: 12px; }
+    .steps { margin-top: 16px; }
+    .step { color: var(--faint); font-size: 14px; padding: 6px 0; }
+    .step.on { color: #c4b5fd; }
+    .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0 12px; }
+    .facts { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+    .pill { font-size: 13px; color: #ddd6fe; background: rgba(139,92,246,.12); border-radius: 999px; padding: 6px 10px; }
+    .note { margin-top: 12px; color: var(--muted); font-size: 14px; }
+    .hidden { display: none; }
+    @media (max-width: 720px) {
+      .choices, .grid { grid-template-columns: 1fr; }
+      h1 { font-size: 32px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="top">
+      <a class="brand" href="/">Closer Tech</a>
+      <a class="back" href="/">Back to site</a>
+    </div>
+    <h1>Create an assistant</h1>
+    <p class="lead">Describe the business in a few words, paste the website, or build it yourself. Once it looks right, the assistant is created and you finish the rest on the dashboard.</p>
+
+    <div id="choose" class="choices">
+      <button class="choice" type="button" data-mode="ai">
+        <div class="mark">✦</div>
+        <h2>Build with a few words</h2>
+        <p>Say what the business does, or paste the website. The assistant reads it, shows you what it found, and waits for you to confirm.</p>
+      </button>
+      <button class="choice" type="button" data-mode="manual">
+        <div class="mark">✎</div>
+        <h2>Build manually</h2>
+        <p>Set the name, job, industry, and what the assistant should do. You can still paste a website and fill the rest from it.</p>
+      </button>
+    </div>
+
+    <section id="ai" class="panel hidden" style="margin-top: 16px;">
+      <h2>Tell it about the business</h2>
+      <p class="hint">A sentence is enough. Add the website if you have one and it will read the page.</p>
+      <label for="brief">In your own words</label>
+      <textarea id="brief" placeholder="A hotel in Lagos. The assistant should answer calls, explain the rooms, and help guests book."></textarea>
+      <label for="site">Website</label>
+      <input id="site" type="url" placeholder="https://thebusiness.com" />
+      <div id="progress" class="steps hidden"></div>
+      <p id="ai-error" class="error hidden"></p>
+      <div class="row">
+        <button class="ghost" type="button" id="ai-back">Back</button>
+        <button class="primary" type="button" id="research">Find the business</button>
+      </div>
+    </section>
+
+    <form id="creator" class="panel hidden" method="post" action="/studio" style="margin-top: 16px;">
+      <h2 id="form-title">Is this the business?</h2>
+      <p id="source-note" class="note"></p>
+      <div id="found" class="facts"></div>
+      <div id="uncertain" class="facts"></div>
+      <div class="grid">
+        <div>
+          <label for="name">Assistant name</label>
+          <input id="name" name="name" required placeholder="Amina" />
+        </div>
+        <div>
+          <label for="role">Job title</label>
+          <input id="role" name="role" placeholder="Receptionist" />
+        </div>
+        <div>
+          <label for="business_name">Business name</label>
+          <input id="business_name" name="business_name" required placeholder="Harbor Hotel" />
+        </div>
+        <div>
+          <label for="industry">Industry</label>
+          <input id="industry" name="industry" placeholder="Hotel" />
+        </div>
+      </div>
+      <label for="website">Website</label>
+      <input id="website" name="website" placeholder="https://thebusiness.com" />
+      <label for="objective">What this assistant is for</label>
+      <input id="objective" name="objective" placeholder="Welcome guests and help them book" />
+      <label for="description">What it should know</label>
+      <textarea id="description" name="description" required></textarea>
+      <label for="greeting">Opening line</label>
+      <input id="greeting" name="greeting" placeholder="Hello, this is Amina at Harbor Hotel. How can I help?" />
+      <div id="voice-picker" data-voice="Kore" data-tone="warm" data-manner="brief"></div>
+      <p class="note">Pick a Gemini voice and how the assistant should sound. You can change it later on the dashboard.</p>
+      {% if error %}<p class="error">{{ error }}</p>{% endif %}
+      <div class="row">
+        <button class="ghost" type="button" id="form-back">Back</button>
+        <button class="ghost hidden" type="button" id="fill-site">Read the website</button>
+        <button class="primary" type="submit">Create assistant</button>
+      </div>
+    </form>
+  </div>
+  <script>
+    const choose = document.getElementById("choose");
+    const ai = document.getElementById("ai");
+    const form = document.getElementById("creator");
+    const progress = document.getElementById("progress");
+    const aiError = document.getElementById("ai-error");
+    let mode = "choose";
+
+    document.querySelectorAll("[data-mode]").forEach((button) => {
+      button.addEventListener("click", () => openMode(button.dataset.mode));
+    });
+    document.getElementById("ai-back").addEventListener("click", () => openMode("choose"));
+    document.getElementById("form-back").addEventListener("click", () => openMode(mode === "manual" ? "choose" : "ai"));
+    document.getElementById("research").addEventListener("click", () => runResearch(false));
+    document.getElementById("fill-site").addEventListener("click", () => runResearch(true));
+
+    function openMode(next) {
+      mode = next;
+      choose.classList.toggle("hidden", next !== "choose");
+      ai.classList.toggle("hidden", next !== "ai");
+      const showForm = next === "manual" || next === "review";
+      form.classList.toggle("hidden", !showForm);
+      document.getElementById("form-title").textContent = next === "manual" ? "Build it yourself" : "Is this the business?";
+      document.getElementById("fill-site").classList.toggle("hidden", next !== "manual");
+      if (next === "manual") document.getElementById("source-note").textContent = "Type the details, or paste a website and read it in.";
+    }
+
+    function showError(message) {
+      aiError.textContent = message;
+      aiError.classList.remove("hidden");
+    }
+
+    async function runResearch(fromManual) {
+      const description = fromManual
+        ? [document.getElementById("objective").value, document.getElementById("description").value].filter(Boolean).join(". ")
+        : document.getElementById("brief").value.trim();
+      const website = fromManual
+        ? document.getElementById("website").value.trim()
+        : document.getElementById("site").value.trim();
+      if (!description && !website) {
+        showError("Type a few words about the business, or add a website.");
+        return;
+      }
+      const button = fromManual ? document.getElementById("fill-site") : document.getElementById("research");
+      button.disabled = true;
+      aiError.classList.add("hidden");
+      const labels = ["Reading the website", "Pulling out the business", "Writing the assistant"];
+      progress.classList.remove("hidden");
+      progress.innerHTML = labels.map((label, index) => `<div class="step" data-i="${index}">${label}</div>`).join("");
+      let step = 0;
+      const timer = setInterval(() => {
+        progress.querySelectorAll(".step").forEach((el) => el.classList.toggle("on", Number(el.dataset.i) <= step));
+        step = Math.min(step + 1, labels.length - 1);
+      }, 700);
+      try {
+        const response = await fetch("/studio/research", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ description, website }),
+        });
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.detail || "The business could not be read.");
+        fill(data);
+        openMode(fromManual ? "manual" : "review");
+        form.scrollIntoView({ behavior: "smooth", block: "start" });
+      } catch (err) {
+        showError(err.message || "Something went wrong.");
+      } finally {
+        clearInterval(timer);
+        progress.classList.add("hidden");
+        button.disabled = false;
+      }
+    }
+
+    function fill(data) {
+      const fields = {
+        name: data.assistant_name,
+        business_name: data.business_name,
+        role: data.role,
+        industry: data.industry,
+        website: data.website,
+        objective: data.objective,
+        description: data.summary,
+        greeting: data.greeting,
+      };
+      Object.entries(fields).forEach(([id, value]) => {
+        if (value) document.getElementById(id).value = value;
+      });
+      document.getElementById("source-note").textContent = data.source_note || "";
+      document.getElementById("found").innerHTML = (data.found || []).map((item) => `<span class="pill">${escapeHtml(item)}</span>`).join("");
+      document.getElementById("uncertain").innerHTML = (data.uncertain || []).map((item) => `<span class="pill">Check: ${escapeHtml(item)}</span>`).join("");
+    }
+
+    function escapeHtml(value) {
+      return String(value).replace(/[&<>"']/g, (ch) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[ch]));
+    }
+    {% if error %}
+    openMode("manual");
+    {% endif %}
+  </script>
+  <script src="/studio/voice-picker.js"></script>
+</body>
+</html>

@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+<meta name="facebook-domain-verification" content="herwxrty1slzszb76xdcrx64lt3jr2" />
+<title>Joy Admin — Dashboard</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#09090b;--bg2:#111115;--surface:#161618;--surface2:#1f1f22;
+  --border:#27272a;--border2:#3f3f46;
+  --accent:#25d366;--accent2:rgba(37,211,102,.12);
+  --blue:#3b82f6;--blue2:rgba(59,130,246,.12);
+  --purple:#8b5cf6;--red:#ef4444;--red2:rgba(239,68,68,.12);
+  --warn:#f59e0b;--warn2:rgba(245,158,11,.12);
+  --tx:#f4f4f5;--tx2:#a1a1aa;--tx3:#52525b;
+  --r:8px;--r2:12px;--nav:60px;
+}
+body{background:var(--bg);color:var(--tx);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;min-height:100vh}
+a{color:var(--accent);text-decoration:none}
+a:hover{text-decoration:underline}
+
+/* NAV */
+nav{background:var(--surface);border-bottom:1px solid var(--border);height:var(--nav);display:flex;align-items:center;padding:0 28px;gap:0;position:sticky;top:0;z-index:100}
+.nav-brand{font-weight:800;font-size:16px;color:var(--accent);letter-spacing:-.5px;margin-right:36px;white-space:nowrap}
+.nav-links{display:flex;gap:4px;flex:1}
+.nav-links a{font-size:13px;color:var(--tx2);padding:7px 13px;border-radius:var(--r);transition:all .15s;white-space:nowrap}
+.nav-links a:hover{color:var(--tx);background:var(--surface2);text-decoration:none}
+.nav-links a.active{color:var(--tx);background:var(--surface2);font-weight:600}
+.nav-badge{display:inline-block;background:var(--red);color:#fff;border-radius:999px;font-size:10px;font-weight:700;padding:1px 6px;margin-left:5px;vertical-align:middle}
+
+/* LAYOUT */
+.wrap{max-width:1200px;margin:0 auto;padding:32px 24px}
+.page-header{margin-bottom:28px}
+.page-title{font-size:22px;font-weight:800;margin-bottom:4px}
+.page-sub{font-size:13px;color:var(--tx2)}
+
+/* STATS GRID */
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:14px;margin-bottom:32px}
+.stat{background:var(--surface);border:1px solid var(--border);border-radius:var(--r2);padding:20px 18px;position:relative;overflow:hidden}
+.stat::before{content:'';position:absolute;top:0;left:0;right:0;height:3px}
+.stat.green::before{background:var(--accent)}
+.stat.blue::before{background:var(--blue)}
+.stat.warn::before{background:var(--warn)}
+.stat.red::before{background:var(--red)}
+.stat.purple::before{background:var(--purple)}
+.stat-label{font-size:11px;color:var(--tx2);text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px}
+.stat-val{font-size:34px;font-weight:800;letter-spacing:-.03em}
+.stat-val.green{color:var(--accent)}
+.stat-val.blue{color:var(--blue)}
+.stat-val.warn{color:var(--warn)}
+.stat-val.red{color:var(--red)}
+.stat-val.purple{color:var(--purple)}
+
+/* CARDS & TABLES */
+.section-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+.section-title{font-size:14px;font-weight:700}
+.section-link{font-size:12px;color:var(--tx2)}
+.section-link:hover{color:var(--tx)}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r2);overflow:hidden;margin-bottom:28px}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{padding:10px 16px;text-align:left;font-size:11px;color:var(--tx2);text-transform:uppercase;letter-spacing:.4px;border-bottom:1px solid var(--border);background:var(--surface2);white-space:nowrap}
+td{padding:11px 16px;border-bottom:1px solid var(--border);vertical-align:middle}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:rgba(255,255,255,.02)}
+.empty{padding:28px;text-align:center;color:var(--tx3);font-size:13px}
+
+/* BADGES */
+.badge{display:inline-block;padding:2px 9px;border-radius:20px;font-size:11px;font-weight:600}
+.badge.new{background:var(--accent2);color:var(--accent)}
+.badge.contacted{background:var(--warn2);color:var(--warn)}
+.badge.paid{background:var(--blue2);color:var(--blue)}
+.badge.converted{background:rgba(139,92,246,.15);color:var(--purple)}
+.badge.browsing{background:var(--surface2);color:var(--tx2)}
+.badge.building{background:var(--blue2);color:var(--blue)}
+.badge.payment{background:var(--warn2);color:var(--warn)}
+.badge.open{background:var(--red2);color:var(--red)}
+.badge.resolved{background:var(--accent2);color:var(--accent)}
+.badge.human{background:var(--red2);color:var(--red)}
+.badge.unanswered{background:var(--warn2);color:var(--warn)}
+.badge.complex{background:var(--blue2);color:var(--blue)}
+.trunc{max-width:240px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--tx2)}
+
+/* TWO-COL GRID */
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:24px}
+@media(max-width:768px){.two-col{grid-template-columns:1fr}.stats{grid-template-columns:1fr 1fr}}
+</style>
+</head>
+<body>
+<nav>
+  <span class="nav-brand">🤖 Joy Admin</span>
+  <div class="nav-links">
+    <a href="/admin" class="active">Overview</a>
+    <a href="/admin/demos">Demo Bots</a>
+    <a href="/admin/payments">Leads</a>
+    <a href="/admin/actions">Needs Action {% if stats.needs_action > 0 %}<span class="nav-badge">{{ stats.needs_action }}</span>{% endif %}</a>
+    <a href="/admin/escalations">Escalations {% if stats.open_escalations > 0 %}<span class="nav-badge">{{ stats.open_escalations }}</span>{% endif %}</a>
+    <a href="/admin/users">Users</a>
+    <a href="/admin/settings">Settings</a>
+  </div>
+</nav>
+
+<div class="wrap">
+  <div class="page-header">
+    <div class="page-title">Dashboard</div>
+    <div class="page-sub">Closer Tech — Joy AI Assistant overview</div>
+  </div>
+
+  <div class="stats">
+    <div class="stat green">
+      <div class="stat-label">Total Users</div>
+      <div class="stat-val green">{{ stats.total_users }}</div>
+    </div>
+    <div class="stat blue">
+      <div class="stat-label">Messages Sent</div>
+      <div class="stat-val blue">{{ stats.total_messages }}</div>
+    </div>
+    <div class="stat blue">
+      <div class="stat-label">Demo Bots Built</div>
+      <div class="stat-val blue">{{ stats.total_demos }}</div>
+    </div>
+    <div class="stat warn">
+      <div class="stat-label">Payment Leads</div>
+      <div class="stat-val warn">{{ stats.total_leads }}</div>
+    </div>
+    <div class="stat green">
+      <div class="stat-label">New Leads</div>
+      <div class="stat-val green">{{ stats.new_leads }}</div>
+    </div>
+    <div class="stat purple">
+      <div class="stat-label">Paid Customers</div>
+      <div class="stat-val purple">{{ stats.paid_count }}</div>
+    </div>
+    <div class="stat red">
+      <div class="stat-label">Open Escalations</div>
+      <div class="stat-val red">{{ stats.open_escalations }}</div>
+    </div>
+    <div class="stat warn">
+      <div class="stat-label">Needs Action</div>
+      <div class="stat-val warn">{{ stats.needs_action }}</div>
+    </div>
+  </div>
+
+  <div class="two-col">
+    <div>
+      <div class="section-header">
+        <div class="section-title">Recent Users</div>
+        <a href="/admin/users" class="section-link">View all →</a>
+      </div>
+      <div class="card">
+        <table>
+          <thead><tr><th>Name</th><th>Phone</th><th>State</th><th>Demos</th><th>Last Active</th><th></th></tr></thead>
+          <tbody>
+          {% for u in recent_users %}
+          <tr>
+            <td><strong>{{ u.name or '—' }}</strong></td>
+            <td style="font-size:12px;color:var(--tx2)">{{ u.phone }}</td>
+            <td>
+              {% if u.state == 'building_bot' %}<span class="badge building">Building</span>
+              {% elif u.state == 'payment_intent' %}<span class="badge payment">Payment</span>
+              {% elif u.state == 'browsing' %}<span class="badge browsing">Browsing</span>
+              {% else %}<span class="badge browsing">{{ u.state }}</span>{% endif %}
+            </td>
+            <td style="text-align:center">{{ u.demo_count }}</td>
+            <td style="color:var(--tx2);font-size:12px">{{ u.last_active.strftime('%d %b %H:%M') if u.last_active else '—' }}</td>
+            <td><a href="/admin/users/{{ u.id }}" style="font-size:12px">View →</a></td>
+          </tr>
+          {% else %}
+          <tr><td colspan="6" class="empty">No users yet.</td></tr>
+          {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div>
+      <div class="section-header">
+        <div class="section-title">Recent Payment Leads</div>
+        <a href="/admin/payments" class="section-link">View all →</a>
+      </div>
+      <div class="card">
+        <table>
+          <thead><tr><th>Name</th><th>Plan</th><th>Email</th><th>Status</th></tr></thead>
+          <tbody>
+          {% for lead in recent_leads %}
+          <tr>
+            <td><strong>{{ lead.customer_name or '—' }}</strong></td>
+            <td>{{ lead.plan }}</td>
+            <td class="trunc">{{ lead.customer_email or '—' }}</td>
+            <td>
+              {% if lead.status == 'new' %}<span class="badge new">New</span>
+              {% elif lead.status == 'contacted' %}<span class="badge contacted">Contacted</span>
+              {% elif lead.status == 'paid' %}<span class="badge paid">Paid</span>
+              {% else %}<span class="badge converted">{{ lead.status | capitalize }}</span>{% endif %}
+            </td>
+          </tr>
+          {% else %}
+          <tr><td colspan="4" class="empty">No leads yet.</td></tr>
+          {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <div class="section-header">
+    <div class="section-title">Recent Escalations</div>
+    <a href="/admin/escalations" class="section-link">View all →</a>
+  </div>
+  <div class="card">
+    <table>
+      <thead><tr><th>User</th><th>Phone</th><th>Trigger</th><th>Message</th><th>Time</th><th>Status</th></tr></thead>
+      <tbody>
+      {% for e in recent_escalations %}
+      <tr>
+        <td><strong>{{ e.user.name or '—' }}</strong></td>
+        <td style="font-size:12px;color:var(--tx2)">{{ e.user.phone }}</td>
+        <td>
+          {% if e.trigger == 'human_request' %}<span class="badge human">Human Request</span>
+          {% elif e.trigger == 'unanswered' %}<span class="badge unanswered">Unanswered</span>
+          {% else %}<span class="badge complex">Complex Query</span>{% endif %}
+        </td>
+        <td class="trunc">{{ e.user_message or '—' }}</td>
+        <td style="color:var(--tx2);font-size:12px">{{ e.created_at.strftime('%d %b %H:%M') if e.created_at else '—' }}</td>
+        <td>
+          {% if e.resolved %}<span class="badge resolved">Resolved</span>
+          {% else %}<span class="badge open">Open</span>{% endif %}
+        </td>
+      </tr>
+      {% else %}
+      <tr><td colspan="6" class="empty">No escalations yet.</td></tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+</body>
+</html>

@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Talk to {{ agent.name }}</title>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700&family=Inter:wght@400;500&display=swap" rel="stylesheet" />
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0; min-height: 100vh; color: #fafafa;
+      font-family: Inter, system-ui, sans-serif;
+      background:
+        radial-gradient(900px 500px at 50% 20%, rgba(139,92,246,.22), transparent 60%),
+        radial-gradient(700px 400px at 50% 100%, rgba(59,130,246,.16), transparent 55%),
+        #07070b;
+      display: flex; flex-direction: column;
+    }
+    header { display: flex; justify-content: space-between; align-items: center; padding: 22px 28px; }
+    a.brand { color: inherit; text-decoration: none; font-family: "Plus Jakarta Sans", sans-serif; font-weight: 700; }
+    .save {
+      border: 0; border-radius: 999px; padding: 12px 18px; font: inherit; font-weight: 600; cursor: pointer;
+      color: white; text-decoration: none;
+      background: linear-gradient(90deg, #3b82f6, #8b5cf6);
+    }
+    main { flex: 1; display: grid; place-items: center; text-align: center; padding: 20px; }
+    h1 { font-family: "Plus Jakarta Sans", sans-serif; font-size: 28px; margin: 22px 0 6px; letter-spacing: -.03em; }
+    p { margin: 0; color: #a1a1aa; }
+    .stage { width: 320px; height: 320px; position: relative; }
+    canvas { width: 320px; height: 320px; }
+    button.orb {
+      position: absolute; inset: 78px; border: 0; border-radius: 50%; cursor: pointer;
+      background: radial-gradient(circle at 35% 30%, #fff, #ddd6fe 16%, #8b5cf6 42%, #1e1b4b 78%);
+      box-shadow: 0 0 60px rgba(139,92,246,.45);
+    }
+    button.orb.live { box-shadow: 0 0 80px rgba(59,130,246,.7); }
+  </style>
+</head>
+<body>
+  <header>
+    <a class="brand" href="/">Closer Tech</a>
+    {% if saved %}
+    <a class="save" href="/app">My bots</a>
+    {% else %}
+    <a class="save" href="/account/signup?bot={{ agent.token }}">Save my bot</a>
+    {% endif %}
+  </header>
+  <main>
+    <div>
+      <div class="stage">
+        <canvas id="wave" width="640" height="640"></canvas>
+        <button class="orb" id="orb" type="button" aria-label="Talk to {{ agent.name }}"></button>
+      </div>
+      <h1>{{ agent.name }}</h1>
+      <p id="status">Tap the circle to talk</p>
+    </div>
+  </main>
+  <script>
+    const token = {{ agent.token | tojson }};
+    const wsUrl = (location.protocol === "https:" ? "wss://" : "ws://") + location.host + "/voice/gemini/live?agent=" + encodeURIComponent(token);
+    const canvas = document.getElementById("wave");
+    const ctx = canvas.getContext("2d");
+    const orb = document.getElementById("orb");
+    const status = document.getElementById("status");
+    let level = 0;
+    let spin = 0;
+    let live = false;
+    let ws = null;
+    let audioContext = null;
+    let processor = null;
+    let player = null;
+    let mediaStream = null;
+    let ring = null;
+    let ringRead = 0, ringWrite = 0, ringSamples = 0, primed = false, silentPulls = 0, speaking = false, bargeFrames = 0;
+
+    function draw() {
+      spin += 0.008;
+      const w = canvas.width, h = canvas.height, cx = w / 2, cy = h / 2;
+      ctx.clearRect(0, 0, w, h);
+      const bars = 72;
+      for (let i = 0; i < bars; i++) {
+        const angle = (i / bars) * Math.PI * 2 + spin;
+        const wave = 0.45 + 0.55 * Math.abs(Math.sin(i * 0.55 + spin * 4));
+        const len = 18 + level * 90 * wave;
+        const inner = 168;
+        ctx.strokeStyle = `rgba(${160 + i}, ${140 + (i % 20)}, 255, ${0.35 + level * 0.55})`;
+        ctx.lineWidth = 4;
+        ctx.lineCap = "round";
+        ctx.beginPath();
+        ctx.moveTo(cx + Math.cos(angle) * inner, cy + Math.sin(angle) * inner);
+        ctx.lineTo(cx + Math.cos(angle) * (inner + len), cy + Math.sin(angle) * (inner + len));
+        ctx.stroke();
+      }
+      level *= 0.92;
+      requestAnimationFrame(draw);
+    }
+    draw();
+
+    function setStatus(text) { status.textContent = text; }
+    function bump(amount) { level = Math.min(1, Math.max(level, amount)); }
+    function resample(input, inRate, outRate) {
+      if (inRate === outRate) return input;
+      const ratio = inRate / outRate;
+      const length = Math.floor(input.length / ratio);
+      const output = new Float32Array(length);
+      for (let i = 0; i < length; i++) {
+        const position = i * ratio;
+        const left = Math.floor(position);
+        const right = Math.min(left + 1, input.length - 1);
+        const mix = position - left;
+        output[i] = input[left] * (1 - mix) + input[right] * mix;
+      }
+      return output;
+    }
+    function floatToPcm16(samples) {
+      const buffer = new ArrayBuffer(samples.length * 2);
+      const view = new DataView(buffer);
+      for (let i = 0; i < samples.length; i++) {
+        const value = Math.max(-1, Math.min(1, samples[i]));
+        view.setInt16(i * 2, value < 0 ? value * 0x8000 : value * 0x7fff, true);
+      }
+      return buffer;
+    }
+    function stopPlayback() {
+      primed = false; speaking = false; silentPulls = 0; bargeFrames = 0;
+      ringRead = 0; ringWrite = 0; ringSamples = 0;
+      if (ring) ring.fill(0);
+    }
+    function playPcm16(arrayBuffer) {
+      if (!audioContext || !ring) return;
+      speaking = true;
+      const view = new DataView(arrayBuffer);
+      let energy = 0;
+      const input = new Float32Array(Math.floor(arrayBuffer.byteLength / 2));
+      for (let i = 0; i < input.length; i++) {
+        input[i] = view.getInt16(i * 2, true) / 32768;
+        energy += input[i] * input[i];
+      }
+      bump(Math.min(1, Math.sqrt(energy / Math.max(1, input.length)) * 8));
+      const samples = resample(input, 24000, audioContext.sampleRate);
+      for (let i = 0; i < samples.length; i++) {
+        ring[ringWrite] = samples[i];
+        ringWrite = (ringWrite + 1) % ring.length;
+        if (ringSamples < ring.length) ringSamples += 1;
+        else ringRead = (ringRead + 1) % ring.length;
+      }
+      if (!primed && ringSamples >= Math.floor(audioContext.sampleRate * 0.06)) primed = true;
+    }
+    function startPlayer() {
+      ring = new Float32Array(audioContext.sampleRate * 20);
+      player = audioContext.createScriptProcessor(1024, 1, 1);
+      player.onaudioprocess = (event) => {
+        const output = event.outputBuffer.getChannelData(0);
+        if (!primed) { output.fill(0); return; }
+        let played = false;
+        for (let i = 0; i < output.length; i++) {
+          if (ringSamples <= 0) { output[i] = 0; continue; }
+          output[i] = ring[ringRead];
+          ringRead = (ringRead + 1) % ring.length;
+          ringSamples -= 1;
+          played = true;
+        }
+        if (played) { silentPulls = 0; return; }
+        silentPulls += 1;
+        if (silentPulls < 6) return;
+        primed = false; speaking = false; silentPulls = 0;
+        setStatus("Your turn");
+      };
+      player.connect(audioContext.destination);
+    }
+    function stopCall() {
+      live = false;
+      orb.classList.remove("live");
+      stopPlayback();
+      if (processor) processor.disconnect();
+      processor = null;
+      if (player) player.disconnect();
+      player = null;
+      ring = null;
+      if (mediaStream) mediaStream.getTracks().forEach((track) => track.stop());
+      mediaStream = null;
+      if (audioContext) audioContext.close();
+      audioContext = null;
+      if (ws) ws.close();
+      ws = null;
+      setStatus("Tap the circle to talk");
+    }
+    function startCall() {
+      setStatus("Connecting");
+      ws = new WebSocket(wsUrl);
+      ws.binaryType = "arraybuffer";
+      ws.onmessage = async (event) => {
+        if (event.data instanceof ArrayBuffer) { playPcm16(event.data); return; }
+        const data = JSON.parse(event.data);
+        if (data.type === "status" && data.status === "ready" && !live) {
+          try {
+            mediaStream = await navigator.mediaDevices.getUserMedia({
+              audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true }
+            });
+            audioContext = new AudioContext();
+            await audioContext.resume();
+            const sourceNode = audioContext.createMediaStreamSource(mediaStream);
+            processor = audioContext.createScriptProcessor(2048, 1, 1);
+            processor.onaudioprocess = (audioEvent) => {
+              if (!ws || ws.readyState !== WebSocket.OPEN) return;
+              const input = audioEvent.inputBuffer.getChannelData(0);
+              let energy = 0;
+              for (let i = 0; i < input.length; i++) energy += input[i] * input[i];
+              const rms = Math.sqrt(energy / input.length);
+              if (!speaking) bump(Math.min(1, rms * 12));
+              if (speaking) {
+                if (rms < 0.07) { bargeFrames = 0; return; }
+                bargeFrames += 1;
+                if (bargeFrames < 2) return;
+                stopPlayback();
+              }
+              ws.send(floatToPcm16(resample(input, audioContext.sampleRate, 16000)));
+            };
+            const mute = audioContext.createGain();
+            mute.gain.value = 0;
+            sourceNode.connect(processor);
+            processor.connect(mute);
+            mute.connect(audioContext.destination);
+            startPlayer();
+            live = true;
+            orb.classList.add("live");
+            setStatus("Listening");
+            ws.send(JSON.stringify({ type: "ready" }));
+          } catch (error) {
+            setStatus("Microphone blocked");
+            ws.close();
+          }
+        } else if (data.type === "error") {
+          setStatus(data.message);
+        }
+      };
+      ws.onerror = () => setStatus("Connection failed");
+      ws.onclose = () => { if (live) stopCall(); };
+    }
+    orb.addEventListener("click", () => { if (live) stopCall(); else startCall(); });
+  </script>
+</body>
+</html>

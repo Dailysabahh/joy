@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" /><meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>Joy Admin — User {{ user.short_id }}</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root { --bg:#0d0d0d;--surface:#161616;--surface2:#1f1f1f;--border:#2a2a2a;--accent:#25d366;--warn:#f59e0b;--text:#f0f0f0;--muted:#777; }
+    body { background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;min-height:100vh; }
+    a { color:var(--accent);text-decoration:none; } a:hover { text-decoration:underline; }
+    nav { background:var(--surface);border-bottom:1px solid var(--border);padding:0 24px;display:flex;align-items:center;gap:32px;height:56px; }
+    .nav-brand { font-weight:800;font-size:17px;color:var(--accent); }
+    .nav-links { display:flex;gap:24px; }
+    .nav-links a { font-size:13.5px;color:var(--muted); }
+    .nav-links a:hover { color:var(--text);text-decoration:none; }
+    .content { max-width:1000px;margin:0 auto;padding:32px 24px; }
+    .back { font-size:13px;color:var(--muted);margin-bottom:20px;display:inline-block; }
+    h1 { font-size:20px;margin-bottom:4px; }
+    .meta { font-size:13px;color:var(--muted);margin-bottom:28px; }
+    .section { margin-bottom:32px; }
+    .section-title { font-size:14px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:14px;border-bottom:1px solid var(--border);padding-bottom:8px; }
+    .card { background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden; }
+
+    /* Conversation thread */
+    .thread { padding: 16px; display: flex; flex-direction: column; gap: 10px; max-height: 500px; overflow-y: auto; }
+    .thread::-webkit-scrollbar { width:4px; } .thread::-webkit-scrollbar-thumb { background:var(--border); }
+    .msg { max-width: 80%; padding: 10px 14px; border-radius: 14px; font-size: 13.5px; line-height: 1.55; white-space: pre-wrap; word-break: break-word; }
+    .msg.user { background: rgba(37,211,102,.15); color: #d4ffe4; align-self: flex-end; border-bottom-right-radius: 4px; }
+    .msg.joy { background: var(--surface2); color: var(--text); align-self: flex-start; border-bottom-left-radius: 4px; }
+    .msg-meta { font-size: 10px; color: var(--muted); margin-top: 4px; }
+    .msg-wrap { display: flex; flex-direction: column; }
+    .msg-wrap.user { align-items: flex-end; }
+    .msg-wrap.joy { align-items: flex-start; }
+
+    /* Tables */
+    table { width:100%;border-collapse:collapse;font-size:13px; }
+    th { padding:10px 14px;text-align:left;font-size:11px;color:var(--muted);text-transform:uppercase;border-bottom:1px solid var(--border);background:var(--surface2); }
+    td { padding:10px 14px;border-bottom:1px solid var(--border);vertical-align:top; }
+    tr:last-child td { border-bottom:none; }
+
+    .badge { display:inline-block;padding:2px 8px;border-radius:20px;font-size:11px;font-weight:600; }
+    .badge.new { background:rgba(37,211,102,.12);color:var(--accent); }
+    .badge.contacted { background:rgba(245,158,11,.12);color:var(--warn); }
+
+    .demo-link { display:inline-flex;align-items:center;gap:6px;background:rgba(37,211,102,.1);border:1px solid rgba(37,211,102,.2);border-radius:8px;padding:6px 12px;font-size:12px;color:var(--accent);word-break:break-all; }
+    .empty { padding:20px;text-align:center;color:var(--muted);font-size:13px; }
+  </style>
+</head>
+<body>
+<nav>
+  <span class="nav-brand">🤖 Joy Admin</span>
+  <div class="nav-links">
+    <a href="/admin">Dashboard</a>
+    <a href="/admin/users">Users</a>
+    <a href="/admin/payments">Payments</a>
+    <a href="/admin/settings">Settings</a>
+  </div>
+</nav>
+<div class="content">
+  <a href="/admin/users" class="back">← Back to Users</a>
+  <h1>User {{ user.short_id }}</h1>
+  <p class="meta">
+    Phone: <strong>{{ user.phone }}</strong> &nbsp;|&nbsp;
+    State: <strong>{{ user.state }}</strong> &nbsp;|&nbsp;
+    Joined: {{ user.created_at.strftime('%d %b %Y %H:%M') if user.created_at else '—' }} &nbsp;|&nbsp;
+    Last active: {{ user.last_active.strftime('%d %b %Y %H:%M') if user.last_active else '—' }}
+  </p>
+
+  <!-- Conversation -->
+  <div class="section">
+    <div class="section-title">Conversation ({{ messages | length }} messages)</div>
+    <div class="card">
+      {% if messages %}
+      <div class="thread">
+        {% for msg in messages %}
+        <div class="msg-wrap {{ msg.role }}">
+          <div class="msg {{ msg.role }}">{{ msg.content }}</div>
+          <div class="msg-meta">
+            {{ 'Joy' if msg.role == 'joy' else 'Customer' }} &nbsp;·&nbsp;
+            {{ msg.timestamp.strftime('%d %b %H:%M') if msg.timestamp else '' }}
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+      {% else %}
+      <div class="empty">No messages yet.</div>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Demo bots -->
+  {% if demos %}
+  <div class="section">
+    <div class="section-title">Demo Bots ({{ demos | length }})</div>
+    <div class="card">
+      <table>
+        <thead><tr><th>Bot Name</th><th>Business</th><th>Industry</th><th>Demo Link</th><th>Expires</th><th>Active</th></tr></thead>
+        <tbody>
+          {% for d in demos %}
+          <tr>
+            <td><strong>{{ d.order.bot_name or '—' }}</strong></td>
+            <td>{{ d.order.business_name or '—' }}</td>
+            <td>{{ d.order.industry or '—' }}</td>
+            <td><a class="demo-link" href="{{ d.link }}" target="_blank">{{ d.link }}</a></td>
+            <td style="font-size:12px;color:var(--muted)">{{ d.demo.expires_at.strftime('%d %b %Y') if d.demo.expires_at else '—' }}</td>
+            <td>{{ '✅' if d.demo.active else '❌' }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- Payment leads -->
+  {% if payment_leads %}
+  <div class="section">
+    <div class="section-title">Payment Leads ({{ payment_leads | length }})</div>
+    <div class="card">
+      <table>
+        <thead><tr><th>Plan</th><th>Setup</th><th>Monthly</th><th>Name</th><th>Email</th><th>Status</th><th>Date</th></tr></thead>
+        <tbody>
+          {% for lead in payment_leads %}
+          <tr>
+            <td><strong>{{ lead.plan }}</strong></td>
+            <td>${{ lead.setup_fee }}</td>
+            <td>${{ lead.monthly_fee }}/mo</td>
+            <td>{{ lead.customer_name or '—' }}</td>
+            <td>{{ lead.customer_email or '—' }}</td>
+            <td><span class="badge {{ lead.status }}">{{ lead.status | capitalize }}</span></td>
+            <td style="font-size:12px;color:var(--muted)">{{ lead.created_at.strftime('%d %b %H:%M') if lead.created_at else '—' }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+  {% endif %}
+</div>
+</body>
+</html>

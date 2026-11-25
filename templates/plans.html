@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Choose a plan — Closer Tech</title>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@600;700&family=Inter:wght@400;500&display=swap" rel="stylesheet" />
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0; min-height: 100vh; color: #fafafa; font-family: Inter, system-ui, sans-serif;
+      background: radial-gradient(800px 420px at 80% -10%, rgba(139,92,246,.2), transparent 55%), #09090b;
+    }
+    .wrap { max-width: 980px; margin: 0 auto; padding: 48px 20px 80px; }
+    h1 { font-family: "Plus Jakarta Sans", sans-serif; font-size: 40px; letter-spacing: -.04em; margin: 0 0 8px; }
+    .lead { color: #a1a1aa; margin: 0 0 28px; }
+    .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+    label.plan {
+      display: block; background: #111115; border: 1px solid #27272a; border-radius: 20px; padding: 22px; cursor: pointer;
+    }
+    label.plan:has(input:checked) { border-color: #8b5cf6; box-shadow: 0 0 0 1px #8b5cf6; }
+    input { margin-right: 8px; }
+    h2 { font-family: "Plus Jakarta Sans", sans-serif; margin: 8px 0; font-size: 22px; }
+    .price { font-size: 28px; font-weight: 700; }
+    .muted { color: #a1a1aa; font-size: 14px; line-height: 1.5; }
+    button {
+      margin-top: 22px; border: 0; border-radius: 999px; padding: 14px 22px; font: inherit; font-weight: 700;
+      color: white; cursor: pointer; background: linear-gradient(90deg, #3b82f6, #8b5cf6);
+    }
+    @media (max-width: 800px) { .grid { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>Choose how to keep {{ agent.name if agent else "your bot" }}</h1>
+    <p class="lead">Start a 3-day trial and keep talking to the bot from your dashboard. Connecting it to a website or a phone stays locked until a plan is paid.</p>
+    <form method="post" action="/plans/trial">
+      {% if bot %}<input type="hidden" name="bot" value="{{ bot }}" />{% endif %}
+      <div class="grid">
+        <label class="plan"><input type="radio" name="plan" value="starter" checked /><h2>Starter</h2><div class="price">$300</div><div class="muted">then $80 a month. One voice agent on your website, after the trial.</div></label>
+        <label class="plan"><input type="radio" name="plan" value="growth" /><h2>Growth</h2><div class="price">$700</div><div class="muted">then $150 a month. Website and phone number, after the trial.</div></label>
+        <label class="plan"><input type="radio" name="plan" value="enterprise" /><h2>Enterprise</h2><div class="price">$1,200</div><div class="muted">then $500 a month. Up to five voice agents, after the trial.</div></label>
+      </div>
+      <button type="submit">Start 3-day trial</button>
+    </form>
+  </div>
+</body>
+</html>

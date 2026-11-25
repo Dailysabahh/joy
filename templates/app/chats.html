@@ -1,0 +1,25 @@
+{% extends "app/base.html" %}
+{% block title %}Chats{% endblock %}
+{% block content %}
+  <h1>Chats</h1>
+  <p class="lead">Every call and typed chat. Open one to read it and name the person.</p>
+  <div class="card" style="padding:8px 12px;">
+    <table>
+      <thead><tr><th>When</th><th>Type</th><th>Bot</th><th>Contact</th><th>Started with</th><th></th></tr></thead>
+      <tbody>
+        {% for chat in chats %}
+        <tr>
+          <td class="muted">{{ chat.started_at.strftime('%d %b %H:%M') if chat.started_at else '—' }}</td>
+          <td>{{ 'Chat' if chat.kind == 'chat' else 'Call' }}</td>
+          <td>{{ names.get(chat.agent_id, 'Bot') }}</td>
+          <td>{{ contacts.get(chat.contact_id, 'Caller') }}</td>
+          <td class="muted">{{ previews.get(chat.id, 'No words captured') }}</td>
+          <td><a href="/app/chats/{{ chat.id }}">Open</a></td>
+        </tr>
+        {% else %}
+        <tr><td colspan="6" class="muted">No conversations yet. Chat or talk with a bot and it will show up here.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+{% endblock %}

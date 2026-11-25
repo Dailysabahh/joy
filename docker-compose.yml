@@ -1,0 +1,13 @@
+version: '3.8'
+
+services:
+  princess:
+    build: .
+    ports:
+      - "8001:8001"
+    environment:
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - PRINCESS_PORT=8001
+    restart: unless-stopped
+    volumes:
+      - ./logs:/app/logs

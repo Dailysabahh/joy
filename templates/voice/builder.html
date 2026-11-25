@@ -1,0 +1,529 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Voice AI Builder - AI Closer</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 40px;
+        }
+        
+        .header h1 {
+            font-size: 3em;
+            margin-bottom: 10px;
+        }
+        
+        .header p {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+        
+        .builder-card {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            margin-bottom: 30px;
+        }
+        
+        .section-title {
+            font-size: 1.5em;
+            margin-bottom: 20px;
+            color: #667eea;
+        }
+        
+        .engine-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 40px;
+        }
+        
+        .engine-card {
+            border: 3px solid #e0e0e0;
+            border-radius: 15px;
+            padding: 30px;
+            cursor: pointer;
+            transition: all 0.3s;
+            position: relative;
+        }
+        
+        .engine-card:hover {
+            transform: translateY(-5px);
+            border-color: #667eea;
+            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);
+        }
+        
+        .engine-card.selected {
+            border-color: #667eea;
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+        }
+        
+        .engine-card .badge {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: #667eea;
+            color: white;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.85em;
+            font-weight: 600;
+        }
+        
+        .engine-card h3 {
+            font-size: 1.5em;
+            margin-bottom: 15px;
+            color: #333;
+        }
+        
+        .engine-card ul {
+            list-style: none;
+            margin-top: 15px;
+        }
+        
+        .engine-card li {
+            padding: 8px 0;
+            color: #666;
+        }
+        
+        .engine-card li:before {
+            content: "✓ ";
+            color: #667eea;
+            font-weight: bold;
+            margin-right: 8px;
+        }
+        
+        .form-group {
+            margin-bottom: 25px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #333;
+        }
+        
+        .form-group input,
+        .form-group textarea,
+        .form-group select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+        
+        .form-group input:focus,
+        .form-group textarea:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        .form-group textarea {
+            min-height: 120px;
+            resize: vertical;
+        }
+        
+        .btn {
+            padding: 15px 40px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 1.1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.3s;
+        }
+        
+        .btn:hover {
+            transform: scale(1.05);
+        }
+        
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        .test-area {
+            background: #f8f9fa;
+            padding: 30px;
+            border-radius: 15px;
+            margin-top: 30px;
+        }
+        
+        .voice-controls {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .voice-btn {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            border: none;
+            font-size: 2em;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .voice-btn.record {
+            background: #667eea;
+        }
+        
+        .voice-btn.recording {
+            background: #ef4444;
+            animation: pulse 1.5s infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+        
+        .status {
+            text-align: center;
+            margin-top: 20px;
+            font-weight: 600;
+            color: #667eea;
+        }
+        
+        .info-box {
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+            border-left: 4px solid #667eea;
+            padding: 20px;
+            border-radius: 8px;
+            margin-top: 20px;
+        }
+        
+        .info-box h4 {
+            margin-bottom: 10px;
+            color: #667eea;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎙️ Voice AI Builder</h1>
+            <p>Create your real-time voice AI assistant - Choose OpenAI or ElevenLabs</p>
+        </div>
+        
+        <div class="builder-card">
+            <h2 class="section-title">Step 1: Choose Your AI Engine</h2>
+            
+            <div class="engine-grid">
+                <div class="engine-card" id="openai-card" onclick="selectEngine('openai')">
+                    <span class="badge">FASTEST</span>
+                    <h3>🤖 OpenAI Realtime</h3>
+                    <p><strong>Best for:</strong> Natural conversations, low latency</p>
+                    <ul>
+                        <li>~$0.02-0.06 per minute</li>
+                        <li>GPT-4o native reasoning</li>
+                        <li><200ms response time</li>
+                        <li>Function calling built-in</li>
+                        <li>Natural interruptions</li>
+                    </ul>
+                </div>
+                
+                <div class="engine-card" id="elevenlabs-card" onclick="selectEngine('elevenlabs')">
+                    <span class="badge">PREMIUM</span>
+                    <h3>🎵 ElevenLabs AI</h3>
+                    <p><strong>Best for:</strong> Voice quality, custom voices</p>
+                    <ul>
+                        <li>~$0.09 per minute</li>
+                        <li>Exceptional voice quality</li>
+                        <li>Emotional range</li>
+                        <li>Voice cloning available</li>
+                        <li>Multi-channel ready</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <h2 class="section-title">Step 2: Configure Your Assistant</h2>
+            
+            <form id="voice-builder-form">
+                <div class="form-group">
+                    <label for="bot-name">Assistant Name</label>
+                    <input type="text" id="bot-name" placeholder="e.g., Sarah, Alex, Customer Support Bot" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="business-name">Business Name</label>
+                    <input type="text" id="business-name" placeholder="e.g., Grand Plaza Hotel" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="business-details">Business Information</label>
+                    <textarea id="business-details" placeholder="Tell us about your business: services, hours, location, pricing, policies... The more detail, the smarter your assistant!" required></textarea>
+                </div>
+                
+                <div class="form-group">
+                    <label for="personality">Personality</label>
+                    <select id="personality">
+                        <option value="professional">Professional & Trustworthy</option>
+                        <option value="friendly">Warm & Friendly</option>
+                        <option value="enthusiastic">Enthusiastic & Energetic</option>
+                        <option value="luxury">Sophisticated Concierge</option>
+                        <option value="direct">Direct & Efficient</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="voice-id">Voice (Optional)</label>
+                    <select id="voice-id">
+                        <option value="">Auto-select based on personality</option>
+                        <option value="alloy">Alloy (Neutral)</option>
+                        <option value="echo">Echo (Male)</option>
+                        <option value="shimmer">Shimmer (Female)</option>
+                        <option value="nova">Nova (Warm Female)</option>
+                        <option value="sage">Sage (British Male)</option>
+                    </select>
+                </div>
+                
+                <button type="button" class="btn" onclick="createVoiceAssistant()">
+                    🚀 Create Voice Assistant
+                </button>
+            </form>
+            
+            <div id="success-message" style="display: none; margin-top: 30px;">
+                <div class="info-box">
+                    <h4>✅ Voice Assistant Created!</h4>
+                    <p>Your assistant is ready. Use the test panel below to try it out.</p>
+                    <p style="margin-top: 10px;"><strong>WebSocket URL:</strong> <code id="ws-url"></code></p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="builder-card">
+            <h2 class="section-title">Step 3: Test Your Assistant</h2>
+            
+            <div class="test-area">
+                <p style="text-align: center; margin-bottom: 20px;">Click the microphone to start talking</p>
+                
+                <div class="voice-controls">
+                    <button class="voice-btn record" id="voice-btn" onclick="toggleVoice()">
+                        🎙️
+                    </button>
+                </div>
+                
+                <div class="status" id="status">
+                    Select engine and create assistant first
+                </div>
+                
+                <div id="transcript-area" style="margin-top: 30px; min-height: 200px; background: white; padding: 20px; border-radius: 10px;">
+                    <p style="color: #999; text-align: center;">Conversation will appear here...</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="builder-card">
+            <h2 class="section-title">📚 What You Can Do Next</h2>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px;">
+                <div class="info-box">
+                    <h4>📞 Add to Website</h4>
+                    <p>Embed your voice assistant on your website with a simple script tag.</p>
+                </div>
+                <div class="info-box">
+                    <h4>☎️ Connect Phone Number</h4>
+                    <p>Link your Twilio number to receive voice calls directly.</p>
+                </div>
+                <div class="info-box">
+                    <h4>💬 Enable WhatsApp</h4>
+                    <p>Make your assistant available on WhatsApp for customers.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        let selectedEngine = null;
+        let ws = null;
+        let mediaRecorder = null;
+        let audioContext = null;
+        
+        function selectEngine(engine) {
+            selectedEngine = engine;
+            
+            // Update UI
+            document.getElementById('openai-card').classList.remove('selected');
+            document.getElementById('elevenlabs-card').classList.remove('selected');
+            document.getElementById(`${engine}-card`).classList.add('selected');
+            
+            updateStatus(`Selected: ${engine === 'openai' ? 'OpenAI Realtime' : 'ElevenLabs'}`);
+        }
+        
+        function createVoiceAssistant() {
+            if (!selectedEngine) {
+                alert('Please select an AI engine first');
+                return;
+            }
+            
+            const botName = document.getElementById('bot-name').value;
+            const businessName = document.getElementById('business-name').value;
+            const businessDetails = document.getElementById('business-details').value;
+            
+            if (!botName || !businessName || !businessDetails) {
+                alert('Please fill in all required fields');
+                return;
+            }
+            
+            // Show success message
+            document.getElementById('success-message').style.display = 'block';
+            const wsUrl = `wss://joy.aicloser.tech/voice/enhanced/ws?engine=${selectedEngine}`;
+            document.getElementById('ws-url').textContent = wsUrl;
+            
+            updateStatus('✅ Assistant ready! Click microphone to test');
+        }
+        
+        function toggleVoice() {
+            if (!selectedEngine) {
+                alert('Please create your assistant first');
+                return;
+            }
+            
+            const btn = document.getElementById('voice-btn');
+            
+            if (btn.classList.contains('recording')) {
+                stopRecording();
+            } else {
+                startRecording();
+            }
+        }
+        
+        async function startRecording() {
+            const btn = document.getElementById('voice-btn');
+            btn.classList.add('recording');
+            btn.textContent = '⏹️';
+            
+            // Connect WebSocket
+            const wsUrl = `wss://joy.aicloser.tech/voice/enhanced/ws?engine=${selectedEngine}`;
+            ws = new WebSocket(wsUrl);
+            
+            ws.onopen = () => {
+                updateStatus('🎙️ Listening...');
+            };
+            
+            ws.onmessage = (event) => {
+                try {
+                    const data = JSON.parse(event.data);
+                    handleWebSocketMessage(data);
+                } catch (e) {
+                    // Binary audio data
+                    playAudio(event.data);
+                }
+            };
+            
+            ws.onerror = () => {
+                updateStatus('❌ Connection error');
+            };
+            
+            // Start audio capture
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                audioContext = new AudioContext({ sampleRate: 24000 });
+                const source = audioContext.createMediaStreamSource(stream);
+                const processor = audioContext.createScriptProcessor(4096, 1, 1);
+                
+                processor.onaudioprocess = (e) => {
+                    if (ws && ws.readyState === WebSocket.OPEN) {
+                        const audioData = e.inputBuffer.getChannelData(0);
+                        const pcm16 = convertToPCM16(audioData);
+                        ws.send(pcm16);
+                    }
+                };
+                
+                source.connect(processor);
+                processor.connect(audioContext.destination);
+            } catch (error) {
+                alert('Microphone access denied');
+                stopRecording();
+            }
+        }
+        
+        function stopRecording() {
+            const btn = document.getElementById('voice-btn');
+            btn.classList.remove('recording');
+            btn.textContent = '🎙️';
+            
+            if (ws) {
+                ws.close();
+                ws = null;
+            }
+            
+            if (audioContext) {
+                audioContext.close();
+                audioContext = null;
+            }
+            
+            updateStatus('Click microphone to start again');
+        }
+        
+        function handleWebSocketMessage(data) {
+            if (data.type === 'transcript') {
+                addTranscript(data.role, data.text);
+            } else if (data.type === 'status') {
+                updateStatus(data.status);
+            } else if (data.type === 'error') {
+                updateStatus('❌ ' + data.message);
+                stopRecording();
+            }
+        }
+        
+        function addTranscript(role, text) {
+            const area = document.getElementById('transcript-area');
+            const p = document.createElement('p');
+            p.style.marginBottom = '10px';
+            p.innerHTML = `<strong>${role === 'user' ? '👤 You' : '🤖 Assistant'}:</strong> ${text}`;
+            area.appendChild(p);
+            area.scrollTop = area.scrollHeight;
+        }
+        
+        function updateStatus(status) {
+            document.getElementById('status').textContent = status;
+        }
+        
+        function convertToPCM16(float32Array) {
+            const buffer = new ArrayBuffer(float32Array.length * 2);
+            const view = new DataView(buffer);
+            for (let i = 0; i < float32Array.length; i++) {
+                const s = Math.max(-1, Math.min(1, float32Array[i]));
+                view.setInt16(i * 2, s < 0 ? s * 0x8000 : s * 0x7FFF, true);
+            }
+            return buffer;
+        }
+        
+        function playAudio(audioData) {
+            // Implement audio playback
+            // This would use Web Audio API to play the received audio
+        }
+    </script>
+</body>
+</html>

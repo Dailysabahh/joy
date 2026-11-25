@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>{% block title %}Studio{% endblock %} — Closer Tech</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+  <style>
+    :root { --bg:#000; --panel:#0a0a0a; --line:#222; --text:#f4f4f5; --muted:#8d8d95; --faint:#5c5c66; }
+    * { box-sizing: border-box; }
+    body { margin:0; background:var(--bg); color:var(--text); font-family:Inter, system-ui, sans-serif; font-size:14px; }
+    a { color:inherit; text-decoration:none; }
+    .shell { display:grid; grid-template-columns:228px 1fr; min-height:100vh; }
+    aside { border-right:1px solid var(--line); padding:18px 12px; position:sticky; top:0; height:100vh; display:flex; flex-direction:column; }
+    .logo { font-weight:700; letter-spacing:.12em; font-size:13px; padding:6px 10px 2px; }
+    .logo-sub { color:var(--faint); font-size:12px; padding:0 10px 16px; }
+    nav a { display:block; color:var(--muted); padding:8px 10px; border-radius:8px; margin-bottom:2px; }
+    nav a.on, nav a:hover { background:#141414; color:#fff; }
+    .side-foot { margin-top:auto; padding:10px; color:var(--faint); font-size:12px; }
+    .side-foot a { color:var(--muted); }
+    main { padding:32px 40px 88px; max-width:1040px; }
+    h1 { font-size:28px; font-weight:560; letter-spacing:-.035em; margin:0; }
+    .lead { color:var(--muted); margin:8px 0 22px; line-height:1.5; }
+    .banner { border:1px solid #2a2440; background:#100e18; color:#ddd6fe; border-radius:10px; padding:12px 14px; margin-bottom:18px; }
+    .card { background:var(--panel); border:1px solid var(--line); border-radius:12px; padding:18px; margin-bottom:14px; }
+    .card h2 { font-size:16px; font-weight:600; margin:0 0 4px; letter-spacing:-.02em; }
+    .hint { color:var(--muted); margin:0 0 14px; line-height:1.45; }
+    label { display:block; color:var(--faint); font-size:12px; margin:12px 0 6px; }
+    input, textarea, select {
+      width:100%; background:#000; color:var(--text); border:1px solid #2a2a2a; border-radius:8px;
+      padding:10px 12px; font:inherit;
+    }
+    textarea { min-height:88px; resize:vertical; }
+    input:focus, textarea:focus, select:focus { outline:1px solid #fff; border-color:#fff; }
+    .grid { display:grid; grid-template-columns:1fr 1fr; gap:0 12px; }
+    .actions { display:flex; gap:8px; align-items:center; margin-top:14px; }
+    button.primary, a.primary {
+      background:#fff; color:#000; border:0; border-radius:8px; padding:9px 14px; font:inherit; font-weight:600; cursor:pointer;
+    }
+    a.ghost, button.ghost { color:var(--text); border:1px solid #2a2a2a; background:transparent; border-radius:8px; padding:8px 12px; font:inherit; cursor:pointer; }
+    table { width:100%; border-collapse:collapse; }
+    th { text-align:left; font-size:11px; color:var(--faint); font-weight:500; letter-spacing:.04em; text-transform:uppercase; padding:8px; border-bottom:1px solid var(--line); }
+    td { padding:10px 8px; border-bottom:1px solid #161616; vertical-align:top; }
+    .rowline { display:flex; justify-content:space-between; gap:16px; align-items:center; }
+    .muted { color:var(--muted); }
+    .checks { display:grid; gap:8px; margin-top:8px; }
+    .checks label { display:flex; gap:8px; align-items:center; color:var(--text); margin:0; font-size:14px; }
+    .checks input { width:auto; }
+    .turn { padding:10px 0; border-bottom:1px solid #161616; }
+    .turn b { display:block; font-size:12px; color:var(--faint); font-weight:500; margin-bottom:4px; }
+    @media (max-width: 860px) {
+      .shell { grid-template-columns:1fr; }
+      aside { position:relative; height:auto; border-right:0; border-bottom:1px solid var(--line); }
+      nav { display:flex; gap:6px; overflow:auto; }
+      nav a { white-space:nowrap; }
+      .side-foot { display:none; }
+      main { padding:22px 16px 64px; }
+      .grid { grid-template-columns:1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <aside>
+      <a class="logo" href="/">CLOSER</a>
+      <div class="logo-sub">Studio</div>
+      <nav>
+        <a href="/app" class="{{ 'on' if page == 'bots' else '' }}">Bots</a>
+        <a href="/app/chats" class="{{ 'on' if page == 'chats' else '' }}">Chats</a>
+        <a href="/app/contacts" class="{{ 'on' if page == 'contacts' else '' }}">Contacts</a>
+        <a href="/studio">New bot</a>
+        <a href="/app/profile" class="{{ 'on' if page == 'account' else '' }}">Account</a>
+      </nav>
+      <div class="side-foot">
+        {{ account.username }}<br>
+        <a href="/portal/logout">Log out</a>
+      </div>
+    </aside>
+    <main>
+      {% if account.access == 'trial' %}
+        {% if trial_open %}
+        <div class="banner">3-day trial · {{ days_left }} day{{ 's' if days_left != 1 else '' }} left. You can fill the bot and talk to it. Connecting it to a website or phone unlocks when the {{ account.plan }} plan is paid.</div>
+        {% else %}
+        <div class="banner">The trial has ended. The studio stays open. Talking and connecting wait until a plan is paid.</div>
+        {% endif %}
+      {% elif account.access == 'new' %}
+        <div class="banner"><a href="/plans">Start the 3-day trial</a> to keep working in the studio.</div>
+      {% endif %}
+      {% block content %}{% endblock %}
+    </main>
+  </div>
+</body>
+</html>

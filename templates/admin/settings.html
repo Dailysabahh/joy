@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" /><meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>Joy Admin — Settings</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root { --bg:#0d0d0d;--surface:#161616;--surface2:#1f1f1f;--border:#2a2a2a;--accent:#25d366;--text:#f0f0f0;--muted:#777; }
+    body { background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;min-height:100vh; }
+    a { color:var(--accent);text-decoration:none; }
+    nav { background:var(--surface);border-bottom:1px solid var(--border);padding:0 24px;display:flex;align-items:center;gap:32px;height:56px; }
+    .nav-brand { font-weight:800;font-size:17px;color:var(--accent); }
+    .nav-links { display:flex;gap:24px; }
+    .nav-links a { font-size:13.5px;color:var(--muted); }
+    .nav-links a:hover,.nav-links a.active { color:var(--text);text-decoration:none; }
+    .content { max-width:680px;margin:0 auto;padding:32px 24px; }
+    h1 { font-size:22px;margin-bottom:6px; }
+    .subtitle { font-size:13px;color:var(--muted);margin-bottom:28px; }
+    .card { background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:24px; }
+    .field { margin-bottom:20px; }
+    label { display:block;font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px; }
+    .value { font-family:monospace;font-size:14px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:10px 14px;color:var(--text);word-break:break-all; }
+    .hint { font-size:12px;color:var(--muted);margin-top:6px; }
+    .info-box { background:rgba(37,211,102,.06);border:1px solid rgba(37,211,102,.15);border-radius:10px;padding:16px 20px;font-size:13px;line-height:1.7;color:#aaa;margin-bottom:24px; }
+    .info-box strong { color:var(--accent); }
+    code { background:var(--surface2);border-radius:4px;padding:1px 6px;font-family:monospace;font-size:12px;color:#e0e0e0; }
+    .steps { counter-reset:step;list-style:none;display:flex;flex-direction:column;gap:10px; }
+    .steps li { counter-increment:step;display:flex;gap:10px;font-size:13px;color:#aaa;line-height:1.6; }
+    .steps li::before { content:counter(step);min-width:22px;height:22px;border-radius:50%;background:rgba(37,211,102,.15);color:var(--accent);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0;margin-top:1px; }
+  </style>
+</head>
+<body>
+<nav>
+  <span class="nav-brand">🤖 Joy Admin</span>
+  <div class="nav-links">
+    <a href="/admin">Dashboard</a>
+    <a href="/admin/users">Users</a>
+    <a href="/admin/payments">Payments</a>
+    <a href="/admin/settings" class="active">Settings</a>
+  </div>
+</nav>
+<div class="content">
+  <h1>Settings & Configuration</h1>
+  <p class="subtitle">Current runtime configuration. To change values, edit the <code>.env</code> file on the server and restart Joy.</p>
+
+  <div class="info-box">
+    <strong>Server:</strong> SSH into <code>ubuntu@13.60.238.119</code> using <code>joy.pem</code>, then:<br/>
+    <code>nano /opt/joy/.env</code> → edit values → <code>sudo systemctl restart joy</code>
+  </div>
+
+  <div class="card">
+    <div class="field">
+      <label>WhatsApp Phone Number ID</label>
+      <div class="value">{{ phone_id or '(not set)' }}</div>
+      <div class="hint">Found in Meta Business → WhatsApp → API Setup. Change this to switch to a different WhatsApp number.</div>
+    </div>
+    <div class="field">
+      <label>Admin Notification Number</label>
+      <div class="value">{{ admin_number or '(not set)' }}</div>
+      <div class="hint">Your personal WhatsApp number that receives payment lead alerts.</div>
+    </div>
+    <div class="field">
+      <label>Base URL</label>
+      <div class="value">{{ base_url or '(not set)' }}</div>
+      <div class="hint">The public HTTPS URL of this server — used in demo bot links.</div>
+    </div>
+  </div>
+
+  <br/>
+  <div class="card">
+    <p style="font-size:14px;font-weight:700;margin-bottom:16px">How to swap phone numbers for a new customer</p>
+    <ol class="steps">
+      <li>Add the new customer's phone number to your WhatsApp Business API app in Meta Business Manager (or use a fresh Meta app).</li>
+      <li>Get the new <strong>Phone Number ID</strong> from Meta Business → WhatsApp → API Setup.</li>
+      <li>SSH into the server: <code>ssh -i ~/Downloads/joy.pem ubuntu@13.60.238.119</code></li>
+      <li>Edit the env file: <code>sudo nano /opt/joy/.env</code></li>
+      <li>Update <code>WHATSAPP_PHONE_NUMBER_ID</code> with the new value.</li>
+      <li>Update <code>WHATSAPP_TOKEN</code> if the new number uses a different access token.</li>
+      <li>Restart Joy: <code>sudo systemctl restart joy</code></li>
+      <li>Update the webhook URL in Meta if you used a different app.</li>
+    </ol>
+  </div>
+</div>
+</body>
+</html>

@@ -1,0 +1,122 @@
+{% extends "app/base.html" %}
+{% block title %}{{ agent.name }}{% endblock %}
+{% block content %}
+  <div class="rowline">
+    <div>
+      <h1>{{ agent.name }}</h1>
+      <p class="lead">{{ agent.business_name }}{% if agent.industry %} · {{ pack.label }}{% endif %}. These are the facts and the jobs this bot is allowed to do.</p>
+    </div>
+    <div class="actions" style="margin:0">
+      {% if can_talk %}
+      <a class="ghost" href="/app/bots/{{ agent.token }}/chat">Chat</a>
+      <a class="ghost" href="/talk/{{ agent.token }}">Talk</a>
+      {% endif %}
+      <a class="ghost" href="/app/chats?bot={{ agent.token }}">History</a>
+    </div>
+  </div>
+  {% if saved %}<div class="banner">Saved.</div>{% endif %}
+
+  <form class="card" method="post" action="/app/bots/{{ agent.token }}">
+    <input type="hidden" name="section" value="identity" />
+    <h2>Identity</h2>
+    <p class="hint">Who answers, and how they sound.</p>
+    <div class="grid">
+      <div><label>Assistant name</label><input name="name" value="{{ agent.name }}" required /></div>
+      <div><label>Job title</label><input name="role" value="{{ agent.role or '' }}" /></div>
+      <div><label>Business</label><input name="business_name" value="{{ agent.business_name }}" required /></div>
+      <div><label>Industry</label><input name="industry" value="{{ agent.industry or '' }}" placeholder="Restaurant, hotel, clinic" /></div>
+      <div><label>Website</label><input name="website" value="{{ agent.website or '' }}" /></div>
+      <div><label>Public phone</label><input name="public_phone" value="{{ profile.public_phone }}" /></div>
+    </div>
+    <label>Address</label>
+    <input name="address" value="{{ profile.address }}" />
+    <label>Opening line</label>
+    <input name="greeting" value="{{ agent.greeting }}" />
+    <div id="voice-picker" data-voice="{{ agent.voice or 'Kore' }}" data-tone="{{ agent.tone or 'warm' }}" data-manner="{{ agent.manner or 'brief' }}"></div>
+    <div class="actions"><button class="primary" type="submit">Save identity</button></div>
+  </form>
+
+  <form class="card" method="post" action="/app/bots/{{ agent.token }}">
+    <input type="hidden" name="section" value="knowledge" />
+    <h2>What it knows</h2>
+    <p class="hint">The story of the business. Specific prices and lists go in the sections below.</p>
+    <label>What this assistant is for</label>
+    <input name="objective" value="{{ agent.objective or '' }}" />
+    <label>Business knowledge</label>
+    <textarea name="description" required>{{ agent.description }}</textarea>
+    <div class="actions"><button class="primary" type="submit">Save knowledge</button></div>
+  </form>
+
+  <form class="card" method="post" action="/app/bots/{{ agent.token }}">
+    <input type="hidden" name="section" value="functions" />
+    <h2>Functions</h2>
+    <p class="hint">What this bot is allowed to do on a call. It will not confirm a live booking system.</p>
+    <div class="checks">
+      {% for item in functions %}
+      <label><input type="checkbox" name="functions" value="{{ item.id }}" {% if item.on %}checked{% endif %} /> {{ item.label }}</label>
+      {% endfor %}
+    </div>
+    <div class="actions"><button class="primary" type="submit">Save functions</button></div>
+  </form>
+
+  {% for section in sections %}
+  <form class="card" method="post" action="/app/bots/{{ agent.token }}">
+    <input type="hidden" name="section" value="{{ section.id }}" />
+    <h2>{{ section.title }}</h2>
+    <p class="hint">{{ section.lead }}</p>
+    {% if section.kind == 'text' %}
+      <textarea name="body">{{ section.value }}</textarea>
+    {% elif section.kind == 'faqs' %}
+      <table id="rows-{{ section.id }}">
+        <thead><tr><th>Question</th><th>Answer</th></tr></thead>
+        <tbody>
+          {% for row in section.value %}
+          <tr>
+            <td><input name="faq_q" value="{{ row.q or '' }}" /></td>
+            <td><input name="faq_a" value="{{ row.a or '' }}" /></td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      <div class="actions"><button class="ghost" type="button" data-add="rows-{{ section.id }}">Add a question</button></div>
+    {% else %}
+      <table id="rows-{{ section.id }}">
+        <thead><tr>{% for field in section.fields %}<th>{{ field[1] }}</th>{% endfor %}</tr></thead>
+        <tbody>
+          {% for row in section.value %}
+          <tr>
+            {% for field in section.fields %}
+            <td><input name="{{ section.store }}_{{ field[0] }}" value="{{ row[field[0]] or '' }}" /></td>
+            {% endfor %}
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      <div class="actions"><button class="ghost" type="button" data-add="rows-{{ section.id }}">Add a row</button></div>
+    {% endif %}
+    <div class="actions"><button class="primary" type="submit">Save {{ section.title | lower }}</button></div>
+  </form>
+  {% endfor %}
+
+  <section class="card">
+    <h2>Connect</h2>
+    {% if can_integrate %}
+    <p class="hint">Put this on the website.</p>
+    <code style="color:#ddd6fe;word-break:break-all">&lt;script src="{{ base_url }}/voice/widget.js?agent={{ agent.token }}" defer&gt;&lt;/script&gt;</code>
+    {% else %}
+    <p class="hint">Website and phone connection stay locked until a plan is paid.</p>
+    {% endif %}
+  </section>
+  <script src="/studio/voice-picker.js"></script>
+  <script>
+    document.querySelectorAll("[data-add]").forEach((button) => {
+      button.addEventListener("click", () => {
+        const table = document.getElementById(button.dataset.add);
+        const row = table.querySelector("tbody tr:last-child");
+        const copy = row.cloneNode(true);
+        copy.querySelectorAll("input").forEach((input) => { input.value = ""; });
+        table.querySelector("tbody").appendChild(copy);
+      });
+    });
+  </script>
+{% endblock %}

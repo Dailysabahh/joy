@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Joy Admin — Escalations</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{--bg:#09090b;--surface:#161618;--surface2:#1f1f22;--border:#27272a;--accent:#25d366;--accent2:rgba(37,211,102,.12);--blue:#3b82f6;--blue2:rgba(59,130,246,.12);--warn:#f59e0b;--warn2:rgba(245,158,11,.12);--red:#ef4444;--red2:rgba(239,68,68,.12);--tx:#f4f4f5;--tx2:#a1a1aa;--tx3:#52525b;--r:8px;--r2:12px;--nav:60px}
+body{background:var(--bg);color:var(--tx);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;min-height:100vh}
+a{color:var(--accent);text-decoration:none}a:hover{text-decoration:underline}
+nav{background:var(--surface);border-bottom:1px solid var(--border);height:var(--nav);display:flex;align-items:center;padding:0 28px;gap:0;position:sticky;top:0;z-index:100}
+.nav-brand{font-weight:800;font-size:16px;color:var(--accent);letter-spacing:-.5px;margin-right:36px}
+.nav-links{display:flex;gap:4px;flex:1}
+.nav-links a{font-size:13px;color:var(--tx2);padding:7px 13px;border-radius:var(--r);transition:all .15s}
+.nav-links a:hover{color:var(--tx);background:var(--surface2);text-decoration:none}
+.nav-links a.active{color:var(--tx);background:var(--surface2);font-weight:600}
+.wrap{max-width:1300px;margin:0 auto;padding:32px 24px}
+.page-title{font-size:22px;font-weight:800;margin-bottom:4px}
+.page-sub{font-size:13px;color:var(--tx2);margin-bottom:28px}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r2);overflow:hidden;margin-bottom:28px}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{padding:10px 16px;text-align:left;font-size:11px;color:var(--tx2);text-transform:uppercase;letter-spacing:.4px;border-bottom:1px solid var(--border);background:var(--surface2);white-space:nowrap}
+td{padding:11px 16px;border-bottom:1px solid var(--border);vertical-align:top}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:rgba(255,255,255,.02)}
+.empty{padding:28px;text-align:center;color:var(--tx3);font-size:13px}
+.badge{display:inline-block;padding:2px 9px;border-radius:20px;font-size:11px;font-weight:600}
+.badge.open{background:var(--red2);color:var(--red)}
+.badge.resolved{background:var(--accent2);color:var(--accent)}
+.badge.human{background:var(--red2);color:var(--red)}
+.badge.unanswered{background:var(--warn2);color:var(--warn)}
+.badge.complex{background:var(--blue2);color:var(--blue)}
+.msg-box{font-size:12px;color:var(--tx2);line-height:1.5;max-width:280px}
+.joy-box{font-size:12px;color:var(--tx2);font-style:italic;line-height:1.5;max-width:280px}
+.resolve-btn{background:var(--accent);color:#000;border:none;border-radius:var(--r);padding:5px 12px;font-size:11px;font-weight:700;cursor:pointer;transition:opacity .15s;white-space:nowrap}
+.resolve-btn:hover{opacity:.85}
+</style>
+</head>
+<body>
+<nav>
+  <span class="nav-brand">🤖 Joy Admin</span>
+  <div class="nav-links">
+    <a href="/admin">Overview</a>
+    <a href="/admin/demos">Demo Bots</a>
+    <a href="/admin/payments">Leads</a>
+    <a href="/admin/actions">Needs Action</a>
+    <a href="/admin/escalations" class="active">Escalations</a>
+    <a href="/admin/users">Users</a>
+    <a href="/admin/settings">Settings</a>
+  </div>
+</nav>
+
+<div class="wrap">
+  <div class="page-title">Escalations</div>
+  <div class="page-sub">Conversations where Joy needed help — human requests, unanswered questions, or complex queries</div>
+
+  <div class="card">
+    <table>
+      <thead><tr>
+        <th>Customer</th>
+        <th>Phone</th>
+        <th>Trigger</th>
+        <th>Customer Message</th>
+        <th>Joy's Response</th>
+        <th>Time</th>
+        <th>Status</th>
+        <th></th>
+      </tr></thead>
+      <tbody>
+      {% for e in escalations %}
+      <tr>
+        <td>
+          <strong>{{ e.user.name or '—' }}</strong><br>
+          <a href="/admin/users/{{ e.user.id }}" style="font-size:11px;color:var(--tx3)">View convo →</a>
+        </td>
+        <td style="font-size:12px;color:var(--tx2)">{{ e.user.phone }}</td>
+        <td>
+          {% if e.trigger == 'human_request' %}<span class="badge human">Human Request</span>
+          {% elif e.trigger == 'unanswered' %}<span class="badge unanswered">Unanswered</span>
+          {% else %}<span class="badge complex">Complex Query</span>{% endif %}
+        </td>
+        <td><div class="msg-box">{{ e.user_message or '—' }}</div></td>
+        <td><div class="joy-box">{{ e.joy_response or '—' }}</div></td>
+        <td style="color:var(--tx2);font-size:12px;white-space:nowrap">{{ e.created_at.strftime('%d %b %H:%M') if e.created_at else '—' }}</td>
+        <td>
+          {% if e.resolved %}<span class="badge resolved">Resolved</span>
+          {% else %}<span class="badge open">Open</span>{% endif %}
+        </td>
+        <td>
+          {% if not e.resolved %}
+          <form method="POST" action="/admin/escalations/{{ e.id }}/resolve">
+            <button type="submit" class="resolve-btn">✓ Resolve</button>
+          </form>
+          {% endif %}
+        </td>
+      </tr>
+      {% else %}
+      <tr><td colspan="8" class="empty">No escalations — Joy is handling everything! 🎉</td></tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+</body>
+</html>

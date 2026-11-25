@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Create account — Closer Tech</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+  <style>
+    * { box-sizing: border-box; }
+    body { margin:0; min-height:100vh; display:grid; place-items:center; padding:24px; background:#000; color:#f4f4f5; font-family:Inter, system-ui, sans-serif; }
+    form { width:min(440px, 100%); border:1px solid #222; border-radius:12px; padding:28px; background:#0a0a0a; }
+    h1 { font-size:28px; letter-spacing:-.04em; font-weight:560; margin:0 0 8px; }
+    p { color:#8d8d95; margin:0 0 8px; line-height:1.5; }
+    label { display:block; font-size:12px; color:#5c5c66; margin:14px 0 6px; }
+    input { width:100%; background:#000; border:1px solid #2a2a2a; color:#f4f4f5; border-radius:8px; padding:11px 12px; font:inherit; }
+    button { width:100%; margin-top:20px; border:0; border-radius:8px; padding:12px; font:inherit; font-weight:600; background:#fff; color:#000; cursor:pointer; }
+    .error { color:#fca5a5; font-size:14px; margin-top:12px; }
+    a { color:#f4f4f5; }
+  </style>
+</head>
+<body>
+  <form method="post" action="/account/signup">
+    <h1>Create account</h1>
+    <p>Use the email verification will be sent to. You can add the code later on your profile.</p>
+    {% if bot %}<input type="hidden" name="bot" value="{{ bot }}" />{% endif %}
+    <label for="username">Username</label>
+    <input id="username" name="username" required autocomplete="username" value="{{ username or '' }}" placeholder="amina" />
+    <label for="email">Email</label>
+    <input id="email" name="email" type="email" required autocomplete="email" value="{{ email or '' }}" placeholder="amina@thebusiness.com" />
+    <label for="password">Password</label>
+    <input id="password" name="password" type="password" required minlength="6" autocomplete="new-password" placeholder="At least 6 characters" />
+    <label for="password_confirm">Password again</label>
+    <input id="password_confirm" name="password_confirm" type="password" required minlength="6" autocomplete="new-password" placeholder="Type the same password" />
+    {% if error %}<div class="error">{{ error }}</div>{% endif %}
+    <button type="submit">Create account</button>
+    <p style="margin-top:18px">Already have one? <a href="/portal">Log in</a></p>
+  </form>
+  <script>
+    const form = document.querySelector("form");
+    form.addEventListener("submit", (event) => {
+      const first = document.getElementById("password").value;
+      const second = document.getElementById("password_confirm").value;
+      if (first !== second) {
+        event.preventDefault();
+        let note = document.querySelector(".error");
+        if (!note) {
+          note = document.createElement("div");
+          note.className = "error";
+          form.insertBefore(note, form.querySelector("button"));
+        }
+        note.textContent = "The two passwords do not match.";
+      }
+    });
+  </script>
+</body>
+</html>

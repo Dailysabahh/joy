@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>My bots — Closer Tech</title>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@600;700&family=Inter:wght@400;500&display=swap" rel="stylesheet" />
+  <style>
+    * { box-sizing: border-box; }
+    body { margin: 0; background: #09090b; color: #fafafa; font-family: Inter, system-ui, sans-serif; }
+    a { color: inherit; text-decoration: none; }
+    .nav { display: flex; justify-content: space-between; align-items: center; padding: 18px 24px; border-bottom: 1px solid #27272a; }
+    .brand { font-family: "Plus Jakarta Sans", sans-serif; font-weight: 700; }
+    .nav a.quiet { color: #a1a1aa; margin-left: 16px; font-size: 14px; }
+    .wrap { max-width: 980px; margin: 0 auto; padding: 32px 20px 80px; }
+    h1 { font-family: "Plus Jakarta Sans", sans-serif; font-size: 36px; letter-spacing: -.04em; margin: 0; }
+    .sub { color: #a1a1aa; margin: 8px 0 24px; }
+    .banner { background: rgba(139,92,246,.12); border: 1px solid rgba(139,92,246,.35); border-radius: 16px; padding: 16px 18px; margin-bottom: 20px; color: #ddd6fe; }
+    .layout { display: grid; grid-template-columns: 1.4fr .7fr; gap: 16px; }
+    .card { background: #111115; border: 1px solid #27272a; border-radius: 18px; padding: 18px; margin-bottom: 14px; }
+    h2 { font-family: "Plus Jakarta Sans", sans-serif; font-size: 18px; margin: 0 0 6px; }
+    .muted { color: #a1a1aa; font-size: 14px; line-height: 1.5; }
+    .row { display: flex; justify-content: space-between; gap: 12px; align-items: center; }
+    .talk {
+      border-radius: 999px; padding: 10px 14px; background: linear-gradient(90deg, #3b82f6, #8b5cf6);
+      font-weight: 600; font-size: 14px;
+    }
+    .locked { color: #71717a; font-size: 13px; margin-top: 10px; }
+    .new { display: inline-block; margin-top: 8px; color: #c4b5fd; }
+    @media (max-width: 800px) { .layout { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+  <nav class="nav">
+    <a class="brand" href="/">Closer Tech</a>
+    <div>
+      <a class="quiet" href="/studio">New bot</a>
+      <a class="quiet" href="/portal/logout">Log out</a>
+    </div>
+  </nav>
+  <div class="wrap">
+    <h1>{{ account.username }}</h1>
+    <p class="sub">Your bots, your account, and the studio.</p>
+    {% if account.access == "trial" %}
+      {% if trial_open %}
+      <div class="banner">3-day trial · {{ days_left }} day{{ "s" if days_left != 1 else "" }} left. You can talk to your bot. Connecting it to a website or phone unlocks when the {{ account.plan }} plan is paid.</div>
+      {% else %}
+      <div class="banner">The trial has ended. You can still see the bot. Talking and connecting it wait until a plan is paid.</div>
+      {% endif %}
+    {% elif account.access == "new" %}
+      <div class="banner"><a href="/plans">Start the 3-day trial</a> to keep this bot on your dashboard.</div>
+    {% endif %}
+    <div class="layout">
+      <section>
+        {% for agent in voice_agents %}
+        <article class="card">
+          <div class="row">
+            <div>
+              <h2>{{ agent.name }}</h2>
+              <div class="muted">{{ agent.business_name }}{% if agent.voice %} · {{ agent.voice }}{% endif %}</div>
+            </div>
+            {% if can_talk %}
+            <a class="talk" href="/talk/{{ agent.token }}">Talk</a>
+            {% else %}
+            <span class="muted">Trial ended</span>
+            {% endif %}
+          </div>
+          {% if can_integrate %}
+          <p class="muted" style="margin-top:12px">Website embed</p>
+          <code style="display:block;margin-top:6px;color:#ddd6fe;font-size:12px;word-break:break-all">&lt;script src="{{ base_url }}/voice/widget.js?agent={{ agent.token }}" defer&gt;&lt;/script&gt;</code>
+          {% else %}
+          <div class="locked">Website and phone connection stay locked until a plan is paid.</div>
+          {% endif %}
+        </article>
+        {% else %}
+        <article class="card">
+          <h2>No bot yet</h2>
+          <p class="muted">Create one in the studio. It will show up here.</p>
+        </article>
+        {% endfor %}
+        <a class="new" href="/studio">Open the creation studio →</a>
+      </section>
+      <aside class="card">
+        <h2>Account</h2>
+        <p class="muted">Username<br><strong style="color:#fafafa">{{ account.username }}</strong></p>
+        <p class="muted">Plan<br><strong style="color:#fafafa">{{ account.plan }}</strong></p>
+        <p class="muted">Access<br><strong style="color:#fafafa">{{ account.access or "paid" }}</strong></p>
+      </aside>
+    </div>
+  </div>
+</body>
+</html>

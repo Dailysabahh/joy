@@ -1,0 +1,202 @@
+{
+  "company": {
+    "name": "Closer Tech",
+    "tagline": "Everything AI, Built for Your Business",
+    "description": "Closer Tech is an AI automation agency that builds and deploys intelligent AI systems for businesses — from 24/7 customer-facing bots to full AI-powered business intelligence systems that give owners real-time visibility into every part of their operation.",
+    "contact_whatsapp": "wa.me/2348103900442",
+    "website": "aicloser.tech",
+    "stats": {
+      "bots_deployed": "500+",
+      "satisfaction_rate": "98%",
+      "operation": "24/7"
+    },
+    "delivery_time": "3–5 business days after payment",
+    "process": [
+      "Build and test a free personalised demo bot with Joy (no payment required — for receptionist/rep bots)",
+      "When you're happy, choose a plan and pay securely online",
+      "Our team contacts you immediately via WhatsApp or email",
+      "Your bot is built, trained, and deployed within 3–5 business days",
+      "You get access to your client dashboard to monitor performance"
+    ]
+  },
+  "services": [
+    {
+      "id": "website_chatbot",
+      "name": "Website Chatbot",
+      "description": "Intelligent AI assistant on your website. Answers questions, qualifies leads, and converts visitors into customers around the clock.",
+      "highlights": ["24/7 visitor support", "Lead qualification", "Custom knowledge base", "Seamless handoff to human"]
+    },
+    {
+      "id": "whatsapp_assistant",
+      "name": "WhatsApp AI Assistant",
+      "description": "24/7 WhatsApp support agent. Handles enquiries, sends catalogues, processes orders, and follows up with customers automatically.",
+      "highlights": ["Order processing", "Catalogue sharing", "Automated follow-ups", "Multi-language support"]
+    },
+    {
+      "id": "instagram_dm",
+      "name": "Instagram DM Responder",
+      "description": "Never miss an Instagram DM again. Our AI reads full context, responds intelligently, and routes hot leads to your sales team.",
+      "highlights": ["Context-aware replies", "Lead routing", "24/7 DM management", "Sales escalation"]
+    },
+    {
+      "id": "email_responder",
+      "name": "Email AI Responder",
+      "description": "Reads inbound emails, crafts human-like replies, handles FAQs automatically, and escalates complex issues to your team.",
+      "highlights": ["FAQ automation", "Human-like replies", "Smart escalation", "Response time under 1 minute"]
+    },
+    {
+      "id": "trading_bot",
+      "name": "AI Trading Bot",
+      "description": "Automated algorithmic trading powered by AI. Analyses real-time market data, identifies opportunities, and executes trades on your strategy.",
+      "highlights": ["Real-time market analysis", "Binance / MT4 / MT5 compatible", "Custom trading strategy", "Risk management built-in"],
+      "plan_required": "Enterprise"
+    },
+    {
+      "id": "social_media_manager",
+      "name": "Social Media Manager",
+      "description": "AI-driven content creation, scheduling, and publishing across all platforms. Generate captions, post at the best times, grow on autopilot.",
+      "highlights": ["Multi-platform posting", "AI caption generation", "Optimal scheduling", "Growth analytics"],
+      "plan_required": "Enterprise"
+    },
+    {
+      "id": "business_brain",
+      "name": "AI Business Brain",
+      "description": "A full AI-powered business intelligence system — the brain of your entire operation. Your staff send reports on WhatsApp, your bot processes everything into your management system, and you ask your AI questions like 'What were sales today?' or 'What's the stock level?' and get accurate, instant answers on WhatsApp. Works as both a smart customer-facing receptionist AND a private business intelligence system for owners and directors.",
+      "highlights": [
+        "Ask about your business on WhatsApp — sales, stock, bookings, P&L, expenses",
+        "Staff send text or photo reports via WhatsApp — bot processes and updates records automatically",
+        "Works as a customer-facing receptionist AND owner-facing business intelligence bot",
+        "Integrates with your existing ERP/management system via API",
+        "No existing system? We build and deploy Closer ERP — our own management platform — for you",
+        "Works for hotels, restaurants, lounges, clubs, spas, retail, real estate, and more",
+        "Anti-hallucination: never invents data — always pulls from your live business records",
+        "Dedicated WhatsApp number for your bot"
+      ],
+      "plan_required": "Business Brain",
+      "note_on_demo": "This product requires technical integration with your business systems. No automated demo — our team will consult with you to design the right solution."
+    }
+  ],
+  "pricing": {
+    "note": "One-time setup fee covers bot training and deployment. Monthly retainer keeps your bot updated, maintained, and improving.",
+    "annual_savings": "Save 17% with annual billing",
+    "plans": [
+      {
+        "id": "starter",
+        "name": "Starter",
+        "setup_fee": 300,
+        "monthly_fee": 80,
+        "annual_monthly": 66,
+        "tagline": "For small businesses automating website support and capturing leads 24/7.",
+        "features": [
+          "1 Bot — Website Chat Widget",
+          "ChatGPT-level intelligence",
+          "Custom knowledge base",
+          "Lead capture & email notification",
+          "Monthly performance report",
+          "Client dashboard access",
+          "WhatsApp & email support"
+        ]
+      },
+      {
+        "id": "growth",
+        "name": "Growth",
+        "setup_fee": 700,
+        "monthly_fee": 150,
+        "annual_monthly": 125,
+        "most_popular": true,
+        "tagline": "For growing businesses wanting a full-channel bot on WhatsApp, Instagram, or Email.",
+        "features": [
+          "1 Bot — WhatsApp, Instagram, or Email",
+          "Custom knowledge base & lead capture",
+          "Everything in Starter",
+          "Priority support (24hr response)",
+          "Quarterly bot retraining & updates"
+        ]
+      },
+      {
+        "id": "enterprise",
+        "name": "Enterprise",
+        "setup_fee": 1200,
+        "monthly_fee": 500,
+        "annual_monthly": 415,
+        "tagline": "For businesses wanting full multi-channel AI automation across all platforms.",
+        "features": [
+          "Up to 5 Bots — WhatsApp + Instagram + Email",
+          "Full multi-channel deployment",
+          "Everything in Growth",
+          "Dedicated account manager",
+          "Advanced analytics & monthly strategy call",
+          "AI Trading Bot — contact us for pricing",
+          "Social Media Manager — contact us for pricing"
+        ]
+      },
+      {
+        "id": "business_brain",
+        "name": "Business Brain",
+        "setup_fee": 1200,
+        "monthly_fee": 300,
+        "annual_monthly": 249,
+        "tagline": "For businesses that want an AI system that knows everything about their operation — and talks to them on WhatsApp.",
+        "is_new": true,
+        "features": [
+          "1 AI Business Brain Bot on WhatsApp",
+          "Customer-facing AI receptionist + owner/director intelligence layer",
+          "Staff report processing via WhatsApp (text and photo)",
+          "Ask about sales, stock, bookings, P&L, expenses anytime on WhatsApp",
+          "Integration with your existing ERP/management system via API",
+          "No existing system? We build & deploy Closer ERP for you",
+          "Works for any business — hotel, restaurant, lounge, club, spa, retail, real estate, and more",
+          "Dedicated account manager + setup consultation",
+          "Anti-hallucination: only real data, never invented figures"
+        ],
+        "requires_consultation": true
+      }
+    ]
+  },
+  "faqs": [
+    {
+      "question": "What is the knowledge base?",
+      "answer": "The knowledge base is your bot's brain. We train it on your business documents, product catalogue, FAQ list, pricing, and policies. The bot then uses this to answer customer questions accurately — just like a trained staff member."
+    },
+    {
+      "question": "What is the AI Business Brain?",
+      "answer": "The Business Brain is a complete AI intelligence system for your business. It works on two levels: (1) as a smart customer-facing receptionist that handles enquiries on WhatsApp, and (2) as a private business intelligence bot for you and your team — so you can ask 'What were sales today?' or 'What's the current stock level?' and get accurate answers on WhatsApp instantly. Staff can send text or photo reports via WhatsApp and the bot automatically updates your management records. It works with your existing system if you have one, or we build Closer ERP — our own management platform — for you."
+    },
+    {
+      "question": "What is Closer ERP and do I need it?",
+      "answer": "Closer ERP is our own proprietary business management platform — built specifically to work with the AI Business Brain. If your business already has an ERP or management system with an API, we integrate directly into that. If you don't have one yet, we deploy Closer ERP as part of your Business Brain package. It covers sales/POS, inventory, bookings, expenses, purchases, staff reports, and more."
+    },
+    {
+      "question": "What types of businesses does the Business Brain work for?",
+      "answer": "Any business that has operations to manage. We've built it for hotels, restaurants, lounges, clubs, spas, fashion businesses, retail stores, real estate operations, and more. If your business generates sales, manages stock, takes bookings, or has staff sending daily reports — the Business Brain can handle it."
+    },
+    {
+      "question": "Can I upgrade my plan?",
+      "answer": "Yes! You can upgrade at any time. The setup cost difference is prorated, and new bot channels are deployed within a few business days. Simply contact our team to initiate an upgrade."
+    },
+    {
+      "question": "How does payment work?",
+      "answer": "You pay the setup fee to get started. After payment is confirmed, our team contacts you immediately via WhatsApp or email to collect everything needed to build your bot. The monthly retainer is billed from the go-live date."
+    },
+    {
+      "question": "Can I cancel?",
+      "answer": "You can cancel your monthly subscription at any time with 14 days' notice. The one-time setup fee is non-refundable as it covers the cost of building and deploying your custom bot."
+    },
+    {
+      "question": "Is there a free trial?",
+      "answer": "For our receptionist and channel bots, I can build you a personalised demo right here at no cost. For the Business Brain plan, a demo isn't automated — it requires a consultation with our team to understand your business systems first. But we're happy to walk you through what's possible."
+    },
+    {
+      "question": "How long does setup take?",
+      "answer": "Receptionist and channel bots are live within 3–5 business days. Business Brain setup typically takes 5–10 business days, depending on the complexity of your business systems and whether we're building Closer ERP or integrating an existing one."
+    },
+    {
+      "question": "Do you support multiple languages?",
+      "answer": "Yes. Our bots support multi-language responses based on how the customer writes to them."
+    }
+  ],
+  "integrations": [
+    "WhatsApp", "Instagram", "Gmail", "Facebook", "TikTok",
+    "Telegram", "MT4", "MT5", "REST API", "Closer ERP", "Custom ERP via API"
+  ]
+}

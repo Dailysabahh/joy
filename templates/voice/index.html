@@ -1,0 +1,683 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Joy — Closer Tech</title>
+<style>
+:root {
+  --bg:     #09090f;
+  --tx:     #fafafa;
+  --tx2:    #a1a1aa;
+  --tx3:    #52525b;
+  --green:  #22c55e;
+  --red:    #ef4444;
+  --purple: #8b5cf6;
+  --blue:   #3b82f6;
+  --border: #1f1f2e;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html, body {
+  height: 100%;
+  font-family: -apple-system, 'Segoe UI', Inter, system-ui, sans-serif;
+  background: var(--bg); color: var(--tx);
+  -webkit-font-smoothing: antialiased;
+  overflow: hidden; user-select: none; -webkit-user-select: none;
+}
+.screen { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+.screen[hidden] { display: none !important; }
+
+/* ── START ────────────────────────────────────────── */
+#startScreen {
+  background: radial-gradient(ellipse at 50% 35%, #110833 0%, #09090f 68%);
+  gap: 12px;
+}
+.av {
+  width: 92px; height: 92px; border-radius: 50%;
+  background: linear-gradient(145deg, #4f46e5, #7c3aed);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 2.5rem; font-weight: 800; color: #fff;
+  animation: av-idle 2.5s ease-in-out infinite;
+  margin-bottom: 8px;
+}
+@keyframes av-idle { 0%,100%{box-shadow:0 0 0 0 rgba(124,58,237,.5)} 60%{box-shadow:0 0 0 14px rgba(124,58,237,0)} }
+.av-name { font-size: 1.85rem; font-weight: 800; letter-spacing: -.04em; }
+.av-role { font-size: .85rem; color: var(--tx2); }
+.av-role b { color: var(--purple); }
+.btn-call {
+  margin-top: 28px;
+  width: 70px; height: 70px; border-radius: 50%; border: none;
+  background: var(--green); color: #fff; font-size: 1.9rem; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  box-shadow: 0 0 28px rgba(34,197,94,.5); transition: transform .14s;
+  -webkit-tap-highlight-color: transparent; touch-action: manipulation;
+}
+.btn-call:active { transform: scale(.9); }
+.start-hint { font-size: .73rem; color: var(--tx3); margin-top: 10px; }
+.ws-row {
+  position: absolute; bottom: 26px;
+  display: flex; align-items: center; gap: 7px;
+  font-size: .7rem; color: var(--tx3);
+}
+.ws-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--tx3); transition: all .3s; }
+.ws-dot.live { background: var(--green); box-shadow: 0 0 4px var(--green); }
+
+/* ── CALL ─────────────────────────────────────────── */
+#callScreen {
+  background: radial-gradient(ellipse at 50% 25%, #0d0826 0%, #09090f 68%);
+  padding: 0 24px;
+  justify-content: space-between;
+  padding-top:    max(env(safe-area-inset-top,0px),    22px);
+  padding-bottom: max(env(safe-area-inset-bottom,0px), 20px);
+}
+.ch { text-align: center; padding-top: 6px; }
+.ch-name  { font-size: 1.4rem; font-weight: 700; letter-spacing: -.03em; }
+.ch-sub   { font-size: .77rem; color: var(--tx2); margin-top: 2px; }
+.ch-timer { font-size: .78rem; color: var(--green); margin-top: 5px; font-variant-numeric: tabular-nums; }
+
+/* ORB */
+.orb-stage { display: flex; flex-direction: column; align-items: center; gap: 18px; flex: 1; justify-content: center; }
+.orb-wrap  { position: relative; width: 220px; height: 220px; display: flex; align-items: center; justify-content: center; }
+.orb-ring  { position: absolute; inset: 0; border-radius: 50%; border: 1.5px solid rgba(139,92,246,.18); transition: border-color .5s; }
+.orb-ring.r2 { inset: -16px; border-color: rgba(59,130,246,.1); }
+.orb-ring.r3 { inset: -32px; border-color: rgba(59,130,246,.05); }
+.vring {
+  position: absolute; border-radius: 50%;
+  border: 2px solid rgba(239,68,68,.5);
+  width: 160px; height: 160px;
+  pointer-events: none; opacity: 0;
+  transition: width .04s linear, height .04s linear, opacity .1s;
+}
+.orb {
+  width: 160px; height: 160px; border-radius: 50%;
+  background: radial-gradient(circle at 38% 35%, #4f46e5 0%, #7c3aed 40%, #1e1b4b 100%);
+  box-shadow: 0 0 55px rgba(124,58,237,.45), 0 0 90px rgba(59,130,246,.12), inset 0 0 30px rgba(0,0,0,.45);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 3.5rem; font-weight: 800; color: #fff; position: relative;
+  transition: background .45s, box-shadow .45s;
+}
+.orb::before {
+  content:''; position: absolute; inset: 0; border-radius: 50%;
+  background: radial-gradient(circle at 35% 25%, rgba(255,255,255,.17) 0%, transparent 60%);
+}
+/* state animations */
+.s-idle      .orb { animation: s-idle   3s ease-in-out infinite; }
+.s-listening .orb {
+  background: radial-gradient(circle at 38% 35%, #b91c1c 0%, #7f1d1d 40%, #1a0808 100%);
+  box-shadow: 0 0 60px rgba(239,68,68,.55), 0 0 100px rgba(239,68,68,.2);
+  animation: s-listen .7s ease-in-out infinite;
+}
+.s-listening .orb-ring   { border-color: rgba(239,68,68,.35)!important; animation: r-pulse .9s ease-in-out infinite; }
+.s-listening .orb-ring.r2 { animation: r-pulse .9s ease-in-out infinite .1s!important; }
+.s-listening .orb-ring.r3 { animation: r-pulse .9s ease-in-out infinite .2s!important; }
+.s-listening .vring { border-color: rgba(239,68,68,.55); }
+.s-thinking  .orb {
+  background: radial-gradient(circle at 38% 35%, #5b21b6 0%, #3b0764 40%, #110a2e 100%);
+  box-shadow: 0 0 50px rgba(139,92,246,.5);
+  animation: s-think 2s ease-in-out infinite;
+}
+.s-speaking  .orb {
+  background: radial-gradient(circle at 38% 35%, #166534 0%, #14532d 40%, #052e16 100%);
+  box-shadow: 0 0 65px rgba(34,197,94,.55), 0 0 110px rgba(34,197,94,.2);
+  animation: s-speak .5s ease-in-out infinite alternate;
+}
+.s-speaking .orb-ring   { border-color: rgba(34,197,94,.4)!important; animation: r-wave 1s ease-in-out infinite; }
+.s-speaking .orb-ring.r2 { animation: r-wave 1s ease-in-out infinite .15s!important; }
+.s-speaking .orb-ring.r3 { animation: r-wave 1s ease-in-out infinite .3s!important; }
+
+@keyframes s-idle   { 0%,100%{transform:scale(1)}    50%{transform:scale(1.025)} }
+@keyframes s-listen { 0%,100%{transform:scale(1)}    50%{transform:scale(1.07)}  }
+@keyframes s-think  { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.72;transform:scale(.97)} }
+@keyframes s-speak  { from{transform:scale(1)} to{transform:scale(1.06)} }
+@keyframes r-pulse  { 0%,100%{transform:scale(1)} 50%{transform:scale(1.08)} }
+@keyframes r-wave   { 0%,100%{transform:scale(1)} 50%{transform:scale(1.11)} }
+
+.call-status {
+  font-size: .88rem; font-weight: 600; color: var(--tx2);
+  text-align: center; min-height: 20px;
+  transition: color .3s; letter-spacing: .01em;
+}
+.s-listening .call-status  { color: var(--red);    }
+.s-speaking  .call-status  { color: var(--green);  }
+.s-thinking  .call-status  { color: var(--purple); }
+
+/* transcript */
+.transcript {
+  width: 100%; max-height: 165px; overflow-y: auto;
+  display: flex; flex-direction: column; gap: 8px;
+  padding: 2px 0; scrollbar-width: none;
+}
+.transcript::-webkit-scrollbar { display: none; }
+.bubble {
+  max-width: 80%; padding: 8px 13px; border-radius: 14px;
+  font-size: .81rem; line-height: 1.5; animation: pop .18s ease;
+}
+@keyframes pop { from{opacity:0;transform:translateY(5px)} to{opacity:1;transform:none} }
+.bubble.user {
+  align-self: flex-end;
+  background: linear-gradient(135deg, #1e40af, #6d28d9);
+  color: #fff; border-radius: 14px 14px 2px 14px;
+}
+.bubble.joy {
+  align-self: flex-start;
+  background: #18181b; border: 1px solid #27272a;
+  color: var(--tx); border-radius: 2px 14px 14px 14px;
+}
+/* footer */
+.call-footer {
+  display: flex; align-items: center; justify-content: center;
+  gap: 40px; padding-bottom: 8px;
+}
+.btn-icon {
+  width: 56px; height: 56px; border-radius: 50%; border: none;
+  background: #1c1c26; color: #fff; font-size: 1.35rem; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  -webkit-tap-highlight-color: transparent; transition: background .18s, transform .12s;
+  touch-action: manipulation;
+}
+.btn-icon:active  { transform: scale(.9); }
+.btn-icon.active  { background: var(--red); }
+.btn-end {
+  width: 68px; height: 68px; border-radius: 50%; border: none;
+  background: var(--red); color: #fff; font-size: 1.65rem; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  box-shadow: 0 0 22px rgba(239,68,68,.4);
+  -webkit-tap-highlight-color: transparent; transition: transform .12s;
+  touch-action: manipulation;
+}
+.btn-end:active { transform: scale(.9); }
+/* toast */
+.toast {
+  position: fixed; bottom: 110px; left: 50%;
+  transform: translateX(-50%) translateY(36px);
+  background: #1c1c26; border: 1px solid #27272a;
+  color: var(--tx2); font-size: .8rem;
+  padding: 9px 18px; border-radius: 999px;
+  transition: transform .3s, opacity .3s;
+  opacity: 0; z-index: 99; pointer-events: none;
+  max-width: 88vw; text-align: center;
+}
+.toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
+/* blocked overlay while Joy is thinking/processing */
+#processingOverlay {
+  position: absolute; inset: 0; z-index: 10;
+  background: transparent; display: none;
+}
+#processingOverlay.active { display: block; }
+</style>
+</head>
+<body>
+
+<!-- START -->
+<div id="startScreen" class="screen">
+  <div class="av">J</div>
+  <div class="av-name">Joy</div>
+  <div class="av-role">AI Assistant · <b>Closer Tech</b></div>
+  <button class="btn-call" id="btnCall">📞</button>
+  <p class="start-hint">Tap to start — allow mic when asked</p>
+  <div class="ws-row">
+    <span class="ws-dot" id="wsDot"></span>
+    <span id="wsText">Connecting…</span>
+  </div>
+</div>
+
+<!-- CALL -->
+<div id="callScreen" class="screen" hidden>
+  <div id="processingOverlay"></div>
+
+  <div class="ch">
+    <div class="ch-name">Joy</div>
+    <div class="ch-sub">Closer Tech AI · Active Call</div>
+    <div class="ch-timer" id="chTimer">00:00</div>
+  </div>
+
+  <div class="orb-stage">
+    <div class="orb-wrap s-idle" id="orbWrap">
+      <div class="orb-ring r3"></div>
+      <div class="orb-ring r2"></div>
+      <div class="orb-ring"></div>
+      <div class="vring" id="vring"></div>
+      <div class="orb">J</div>
+    </div>
+    <div class="call-status" id="callStatus">Connecting…</div>
+  </div>
+
+  <div class="transcript" id="transcript"></div>
+
+  <div class="call-footer">
+    <button class="btn-icon" id="btnMute">🎤</button>
+    <button class="btn-end"  id="btnEnd">📵</button>
+    <button class="btn-icon" id="btnSkip" title="Skip Joy's response">⏭</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* ═══════════════════════════════════════════════════════════════
+   AUDIO WORKLET — PCM16 capture at 24kHz (blob URL, no separate file)
+═══════════════════════════════════════════════════════════════ */
+const WORKLET_CODE = `
+class PCM16Recorder extends AudioWorkletProcessor {
+  constructor() {
+    super();
+    this._buf = [];
+    this._CHUNK = 1200; // 50ms at 24kHz — fine-grained for VAD
+  }
+  process(inputs) {
+    const ch = inputs[0]?.[0];
+    if (!ch) return true;
+    for (let i = 0; i < ch.length; i++) this._buf.push(ch[i]);
+    while (this._buf.length >= this._CHUNK) {
+      const slice = this._buf.splice(0, this._CHUNK);
+      const pcm = new Int16Array(this._CHUNK);
+      for (let i = 0; i < this._CHUNK; i++) {
+        const s = Math.max(-1, Math.min(1, slice[i]));
+        pcm[i] = s < 0 ? s * 32768 : s * 32767;
+      }
+      this.port.postMessage(pcm.buffer, [pcm.buffer]);
+    }
+    return true;
+  }
+}
+registerProcessor('pcm16-recorder', PCM16Recorder);
+`;
+
+/* ═══════════════════════════════════════════════════════════════
+   STREAMING PCM16 PLAYER (24kHz)
+═══════════════════════════════════════════════════════════════ */
+class PCM16Player {
+  constructor(ctx, sampleRate = 24000) {
+    this.ctx  = ctx;
+    this.sr   = sampleRate;
+    this.next = 0;
+    this.srcs = new Set();
+  }
+  feed(ab) {
+    const i16 = new Int16Array(ab);
+    const buf = this.ctx.createBuffer(1, i16.length, this.sr);
+    const ch  = buf.getChannelData(0);
+    for (let i = 0; i < i16.length; i++) ch[i] = i16[i] / 32768;
+    const src = this.ctx.createBufferSource();
+    src.buffer = buf;
+    src.connect(this.ctx.destination);
+    const now = this.ctx.currentTime;
+    const t   = Math.max(this.next, now + 0.02);
+    src.start(t);
+    this.next = t + buf.duration;
+    this.srcs.add(src);
+    src.onended = () => this.srcs.delete(src);
+  }
+  stop() {
+    this.srcs.forEach(s => { try { s.stop(); } catch(e){} });
+    this.srcs.clear();
+    this.next = 0;
+  }
+  get active() { return this.next > this.ctx.currentTime + 0.05; }
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   VAD STATE MACHINE
+   Accumulates PCM16 chunks during speech, fires when silence ends.
+═══════════════════════════════════════════════════════════════ */
+class LocalVAD {
+  constructor({
+    onSpeechStart = () => {},
+    onSpeechEnd   = (buf) => {},
+    threshold     = 0.012,   // RMS energy threshold (0–1)
+    silenceMs     = 900,     // silence duration before end-of-speech
+    minSpeechMs   = 200,     // ignore blips shorter than this
+    maxSpeechMs   = 20000,   // hard limit per utterance
+    sampleRate    = 24000,
+  } = {}) {
+    this.onSpeechStart = onSpeechStart;
+    this.onSpeechEnd   = onSpeechEnd;
+    this.threshold     = threshold;
+    this.silenceMs     = silenceMs;
+    this.minSpeechMs   = minSpeechMs;
+    this.maxSpeechMs   = maxSpeechMs;
+    this.sr            = sampleRate;
+    this._reset();
+  }
+
+  _reset() {
+    this.speaking    = false;
+    this.chunks      = [];
+    this.speechMs    = 0;
+    this._silenceT   = null;
+  }
+
+  feed(arrayBuffer) {
+    const i16  = new Int16Array(arrayBuffer);
+    // RMS energy
+    let sum = 0;
+    for (let i = 0; i < i16.length; i++) { const v = i16[i] / 32768; sum += v * v; }
+    const rms = Math.sqrt(sum / i16.length);
+    const chunkMs = (i16.length / this.sr) * 1000;
+
+    if (!this.speaking) {
+      if (rms > this.threshold) {
+        this.speaking = true;
+        this.chunks   = [arrayBuffer];
+        this.speechMs = chunkMs;
+        this.onSpeechStart();
+      }
+    } else {
+      this.chunks.push(arrayBuffer);
+      this.speechMs += chunkMs;
+
+      if (rms > this.threshold) {
+        clearTimeout(this._silenceT);
+        this._silenceT = null;
+      } else if (!this._silenceT) {
+        this._silenceT = setTimeout(() => {
+          if (this.speechMs >= this.minSpeechMs) {
+            this._fire();
+          } else {
+            this._reset();
+          }
+        }, this.silenceMs);
+      }
+
+      if (this.speechMs >= this.maxSpeechMs) {
+        clearTimeout(this._silenceT);
+        this._fire();
+      }
+    }
+  }
+
+  _fire() {
+    // Concatenate all chunks into one ArrayBuffer
+    const total = this.chunks.reduce((a, b) => a + b.byteLength, 0);
+    const out   = new Uint8Array(total);
+    let off = 0;
+    for (const c of this.chunks) { out.set(new Uint8Array(c), off); off += c.byteLength; }
+    const buf = out.buffer;
+    this._reset();
+    this.onSpeechEnd(buf);
+  }
+
+  interrupt() {
+    clearTimeout(this._silenceT);
+    this._reset();
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   GLOBALS
+═══════════════════════════════════════════════════════════════ */
+let ws        = null;
+let audioCtx  = null;
+let player    = null;
+let worklet   = null;
+let micStream = null;
+let vad       = null;
+let analyser  = null;
+let muted     = false;
+let processing = false;   // true while server is thinking/speaking
+let callStart  = null;
+let clockInt   = null;
+let vadAnimInt = null;
+
+// DOM refs
+const startScreen  = document.getElementById('startScreen');
+const callScreen   = document.getElementById('callScreen');
+const orbWrap      = document.getElementById('orbWrap');
+const vring        = document.getElementById('vring');
+const callStatus   = document.getElementById('callStatus');
+const chTimer      = document.getElementById('chTimer');
+const transcript   = document.getElementById('transcript');
+const btnCall      = document.getElementById('btnCall');
+const btnEnd       = document.getElementById('btnEnd');
+const btnMute      = document.getElementById('btnMute');
+const btnSkip      = document.getElementById('btnSkip');
+const toast        = document.getElementById('toast');
+const wsDot        = document.getElementById('wsDot');
+const wsText       = document.getElementById('wsText');
+const overlay      = document.getElementById('processingOverlay');
+
+/* ═══════════════════════════════════════════════════════════════
+   WEBSOCKET
+═══════════════════════════════════════════════════════════════ */
+function connectWS() {
+  const proto = location.protocol === 'https:' ? 'wss' : 'ws';
+  ws = new WebSocket(`${proto}://${location.host}/voice/ws`);
+  ws.binaryType = 'arraybuffer';
+
+  ws.onopen = () => {
+    wsDot.classList.add('live');
+    wsText.textContent = 'Ready';
+    setInterval(() => { if (ws?.readyState === 1) ws.send(JSON.stringify({type:'ping'})); }, 20000);
+  };
+  ws.onclose = () => {
+    wsDot.classList.remove('live');
+    wsText.textContent = 'Reconnecting…';
+    setTimeout(connectWS, 3000);
+  };
+  ws.onerror = () => ws.close();
+
+  ws.onmessage = (e) => {
+    if (e.data instanceof ArrayBuffer) {
+      // PCM16 audio from Joy — play it
+      player?.feed(e.data);
+      return;
+    }
+    try {
+      const msg = JSON.parse(e.data);
+      handleServerMsg(msg);
+    } catch(err) {}
+  };
+}
+
+function handleServerMsg(msg) {
+  if (msg.type === 'pong') return;
+
+  if (msg.type === 'status') {
+    const s = msg.status;
+    setOrbState(s);
+    processing = (s === 'thinking' || s === 'speaking');
+    overlay.classList.toggle('active', processing);
+
+    // Server-side interruption (Realtime API): stop Joy's audio
+    if (s === 'listening' && player) player.stop();
+    return;
+  }
+
+  if (msg.type === 'transcript') { addBubble(msg.role, msg.text); return; }
+  if (msg.type === 'error')      { showToast(msg.message); setOrbState('idle'); processing = false; overlay.classList.remove('active'); return; }
+  if (msg.type === 'tts_unavailable') {
+    // TTS failed — show text fallback
+    addBubble('joy', msg.text);
+    setOrbState('idle');
+    processing = false;
+    overlay.classList.remove('active');
+    return;
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   CALL START / END
+═══════════════════════════════════════════════════════════════ */
+async function startCall() {
+  try {
+    audioCtx = new (window.AudioContext || window.webkitAudioContext)({ sampleRate: 24000 });
+    if (audioCtx.state === 'suspended') await audioCtx.resume();
+
+    player = new PCM16Player(audioCtx, 24000);
+
+    micStream = await navigator.mediaDevices.getUserMedia({
+      audio: {
+        sampleRate: 24000, channelCount: 1,
+        echoCancellation: true, noiseSuppression: true, autoGainControl: true,
+      },
+      video: false,
+    });
+
+    const src = audioCtx.createMediaStreamSource(micStream);
+
+    // Analyser for voice-ring visualisation
+    analyser = audioCtx.createAnalyser();
+    analyser.fftSize = 256;
+    analyser.smoothingTimeConstant = 0.75;
+    src.connect(analyser);
+
+    // AudioWorklet for PCM16 chunks
+    const blob = new Blob([WORKLET_CODE], { type: 'application/javascript' });
+    const url  = URL.createObjectURL(blob);
+    await audioCtx.audioWorklet.addModule(url);
+    URL.revokeObjectURL(url);
+
+    worklet = new AudioWorkletNode(audioCtx, 'pcm16-recorder');
+    src.connect(worklet);
+
+    // Local VAD — sends complete utterances to server
+    vad = new LocalVAD({
+      threshold:  0.012,
+      silenceMs:  900,
+      minSpeechMs: 200,
+      maxSpeechMs: 20000,
+      sampleRate: 24000,
+      onSpeechStart: () => {
+        if (processing) return; // Joy is still talking — ignore
+        setOrbState('listening');
+      },
+      onSpeechEnd: (buffer) => {
+        if (muted) return;
+        if (ws?.readyState === 1) {
+          ws.send(buffer);
+        }
+      },
+    });
+
+    worklet.port.onmessage = (e) => {
+      if (!muted && !processing) {
+        vad.feed(e.data);
+      }
+    };
+
+    // Show call screen
+    startScreen.hidden = true;
+    callScreen.hidden  = false;
+
+    callStart = Date.now();
+    clockInt  = setInterval(updateClock, 1000);
+    vadAnimInt = setInterval(updateVoiceRing, 50);
+
+    setOrbState('idle');
+
+  } catch (err) {
+    console.error(err);
+    showToast(err.name === 'NotAllowedError'
+      ? 'Mic access denied — allow it in browser settings and retry.'
+      : 'Could not start call: ' + err.message);
+  }
+}
+
+function endCall() {
+  clearInterval(clockInt);
+  clearInterval(vadAnimInt);
+  player?.stop();
+  worklet?.disconnect();
+  vad?.interrupt();
+  micStream?.getTracks().forEach(t => t.stop());
+  audioCtx?.close();
+  audioCtx = player = worklet = vad = micStream = analyser = null;
+  processing = false;
+  transcript.innerHTML = '';
+  chTimer.textContent  = '00:00';
+  overlay.classList.remove('active');
+  callScreen.hidden  = true;
+  startScreen.hidden = false;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   UI HELPERS
+═══════════════════════════════════════════════════════════════ */
+const ORB_CLASSES  = ['s-idle', 's-listening', 's-thinking', 's-speaking'];
+const STATUS_LABELS = {
+  idle:      'Listening…',
+  listening: 'I hear you…',
+  thinking:  'Joy is thinking…',
+  speaking:  'Joy is speaking…',
+};
+
+function setOrbState(s) {
+  orbWrap.classList.remove(...ORB_CLASSES);
+  orbWrap.classList.add(`s-${s}`);
+  callStatus.textContent = STATUS_LABELS[s] || 'Listening…';
+}
+
+function updateVoiceRing() {
+  if (!analyser) return;
+  const data = new Uint8Array(analyser.frequencyBinCount);
+  analyser.getByteTimeDomainData(data);
+  let sum = 0;
+  for (let i = 0; i < data.length; i++) {
+    const v = (data[i] - 128) / 128;
+    sum += v * v;
+  }
+  const rms = Math.sqrt(sum / data.length);
+  if (rms > 0.007) {
+    const scale = Math.min(rms / 0.012, 3);
+    const size  = 160 + scale * 42;
+    vring.style.width   = size + 'px';
+    vring.style.height  = size + 'px';
+    vring.style.opacity = Math.min(scale * 0.25, 0.7) + '';
+  } else {
+    vring.style.opacity = '0';
+  }
+}
+
+function updateClock() {
+  const s = Math.floor((Date.now() - callStart) / 1000);
+  chTimer.textContent = String(Math.floor(s / 60)).padStart(2,'0') + ':' + String(s % 60).padStart(2,'0');
+}
+
+function addBubble(role, text) {
+  const d = document.createElement('div');
+  d.className = `bubble ${role}`;
+  d.textContent = text;
+  transcript.appendChild(d);
+  transcript.scrollTop = transcript.scrollHeight;
+}
+
+let _tt = null;
+function showToast(msg) {
+  toast.textContent = msg;
+  toast.classList.add('show');
+  clearTimeout(_tt);
+  _tt = setTimeout(() => toast.classList.remove('show'), 4500);
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   BUTTON EVENTS
+═══════════════════════════════════════════════════════════════ */
+btnCall.addEventListener('click', startCall);
+
+btnEnd.addEventListener('click', endCall);
+
+btnMute.addEventListener('click', () => {
+  muted = !muted;
+  btnMute.textContent = muted ? '🔇' : '🎤';
+  btnMute.classList.toggle('active', muted);
+  if (muted) vad?.interrupt();
+  showToast(muted ? 'Muted' : 'Unmuted');
+});
+
+btnSkip.addEventListener('click', () => {
+  if (player?.active) {
+    player.stop();
+    processing = false;
+    overlay.classList.remove('active');
+    setOrbState('idle');
+    showToast('Interrupted');
+  }
+});
+
+/* ═══════════════════════════════════════════════════════════════
+   INIT
+═══════════════════════════════════════════════════════════════ */
+connectWS();
+</script>
+</body>
+</html>

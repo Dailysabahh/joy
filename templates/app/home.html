@@ -1,0 +1,35 @@
+{% extends "app/base.html" %}
+{% block title %}Bots{% endblock %}
+{% block content %}
+  <div class="rowline">
+    <div>
+      <h1>Bots</h1>
+      <p class="lead">Open a bot and fill the information. The sections follow the industry.</p>
+    </div>
+    <a class="primary" href="/studio">New bot</a>
+  </div>
+  <div class="card" style="padding:8px 12px;">
+    <table>
+      <thead><tr><th>Assistant</th><th>Business</th><th>Industry</th><th>Voice</th><th></th></tr></thead>
+      <tbody>
+        {% for agent in voice_agents %}
+        <tr>
+          <td><a href="/app/bots/{{ agent.token }}"><strong>{{ agent.name }}</strong></a></td>
+          <td class="muted">{{ agent.business_name }}</td>
+          <td class="muted">{{ agent.industry or "—" }}</td>
+          <td class="muted">{{ agent.voice or "Kore" }}</td>
+          <td style="white-space:nowrap">
+            <a class="primary" href="/app/bots/{{ agent.token }}">Fill the information</a>
+            {% if can_talk %}
+            <a class="ghost" href="/app/bots/{{ agent.token }}/chat">Chat</a>
+            <a class="ghost" href="/talk/{{ agent.token }}">Talk</a>
+            {% endif %}
+          </td>
+        </tr>
+        {% else %}
+        <tr><td colspan="5" class="muted">No bot yet. Create one in the studio.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+{% endblock %}
