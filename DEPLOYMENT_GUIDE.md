@@ -85,7 +85,7 @@ Once deployed, share your public link:
 
 All platforms need this environment variable:
 ```
-OPENAI_API_KEY=[openai_key-redacted]
+OPENAI_API_KEY=your-openai-key
 ```
 
 ## 💰 Cost Estimate

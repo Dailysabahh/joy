@@ -41,7 +41,7 @@ I've created **Princess**, an intelligent AI customer assistant for XtraBrides o
 4. Settings:
    - Build Command: `pip install -r requirements.txt`
    - Start Command: `uvicorn princess_app:app --host 0.0.0.0 --port $PORT`
-   - Add Environment Variable: `OPENAI_API_KEY` = `sk-proj-wJQHTFys...` (use yours)
+   - Add Environment Variable: `OPENAI_API_KEY` = `your-openai-key`
 5. Click "Create Web Service"
 6. **Your Link**: `https://princess-xtrabrides.onrender.com`
 
